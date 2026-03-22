@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import socket from './socket';
+import socket, { saveSession, getSession, clearSession } from './socket';
 import Card from './components/Card';
 
 const RANK_LABELS = {
@@ -116,7 +116,7 @@ function LobbyScreen({ code, players, hostId, myId, onStart }) {
 
 // ==================== JOKER MODAL ====================
 function JokerModal({ onChoice, canReset }) {
-  const [mode, setMode] = useState(null); // null, 'mirror'
+  const [mode, setMode] = useState(null);
   const values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
   if (mode === 'mirror') {
@@ -291,31 +291,41 @@ function GameOverScreen({ gameState, isHost, onRematch }) {
 // ==================== GAME SCREEN ====================
 function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPass, onReset, onBurstClick }) {
   const {
-    hand, opponents, pile, isMyTurn, canReset, sevenActive,
+    hand, allPlayers, pile, isMyTurn, canReset, sevenActive,
     possibleBursts, log, currentPlayerId, mustPlayThreeOfClubs
   } = gameState;
 
-  const currentOpponent = opponents.find(o => o.id === currentPlayerId);
+  // Find whose turn it is for status text
+  const currentPlayerInfo = allPlayers?.find(p => p.id === currentPlayerId);
   const statusText = isMyTurn
     ? (sevenActive ? 'מתחת ל-7! 🔄' : (mustPlayThreeOfClubs ? 'שים 3♣!' : 'התור שלך!'))
-    : (currentOpponent ? `התור של ${currentOpponent.name}` : '');
+    : (currentPlayerInfo ? `התור של ${currentPlayerInfo.name}` : '');
 
   return (
     <div className="game-screen">
-      {/* Opponents */}
-      <div className="opponents-bar">
-        {opponents.map(opp => (
+      {/* All Players Bar (including self) */}
+      <div className="players-bar">
+        {(allPlayers || []).map(p => (
           <div
-            key={opp.id}
-            className={`opponent ${opp.isCurrentTurn ? 'opponent-active' : ''} ${opp.finished ? 'opponent-finished' : ''} ${opp.disconnected ? 'opponent-dc' : ''}`}
+            key={p.id}
+            className={[
+              'player-slot',
+              p.isCurrentTurn && 'player-active',
+              p.isMe && 'player-me',
+              p.finished && 'player-finished',
+              p.disconnected && 'player-dc',
+            ].filter(Boolean).join(' ')}
           >
-            <span className="opponent-name">{opp.name}</span>
-            {opp.finished ? (
-              <span className="opponent-rank">
-                {opp.finishRank === gameState.finishOrder.length ? '🍑' : `#${opp.finishRank}`}
+            <span className="player-slot-name">
+              {p.name}
+              {p.isMe && <span className="player-me-tag">אני</span>}
+            </span>
+            {p.finished ? (
+              <span className="player-slot-rank">
+                {p.finishRank === gameState.finishOrder.length ? '🍑' : `#${p.finishRank}`}
               </span>
             ) : (
-              <span className="opponent-cards">{opp.cardCount} 🃏</span>
+              <span className="player-slot-cards">{p.cardCount} 🃏</span>
             )}
           </div>
         ))}
@@ -374,7 +384,7 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
 
       {/* Hand */}
       <div className="hand-area">
-        {hand.map((card, i) => (
+        {hand.map((card) => (
           <Card
             key={card.id}
             card={card}
@@ -400,7 +410,23 @@ export default function App() {
   const [showJokerModal, setShowJokerModal] = useState(false);
   const [showBurstModal, setShowBurstModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const errorTimer = useRef(null);
+
+  // Try to restore session on mount
+  useEffect(() => {
+    const session = getSession();
+    if (session) {
+      setIsReconnecting(true);
+      socket.emit('join-room', {
+        code: session.code,
+        name: session.name,
+        playerId: session.id,
+      });
+      // Clear reconnecting state after timeout
+      setTimeout(() => setIsReconnecting(false), 3000);
+    }
+  }, []);
 
   // Socket event handlers
   useEffect(() => {
@@ -410,6 +436,11 @@ export default function App() {
       setPlayers(data.players);
       setHostId(data.hostId);
       setScreen('lobby');
+      // Save session for reconnection
+      const myPlayer = data.players.find(p => p.id === data.myId);
+      if (myPlayer) {
+        saveSession(data.code, myPlayer.name, data.myId);
+      }
     });
 
     socket.on('room-joined', (data) => {
@@ -417,10 +448,16 @@ export default function App() {
       setRoomCode(data.code);
       setPlayers(data.players);
       setHostId(data.hostId);
+      setIsReconnecting(false);
       if (data.reconnected && gameState) {
         setScreen('game');
       } else {
         setScreen('lobby');
+      }
+      // Save/update session
+      const myPlayer = data.players.find(p => p.id === data.myId);
+      if (myPlayer) {
+        saveSession(data.code, myPlayer.name, data.myId);
       }
     });
 
@@ -433,6 +470,7 @@ export default function App() {
     socket.on('game-state', (state) => {
       setGameState(state);
       setSelectedCards([]);
+      setIsReconnecting(false);
       if (state.phase === 'playing' || state.phase === 'exchange' || state.phase === 'gameOver') {
         setScreen('game');
       }
@@ -440,8 +478,24 @@ export default function App() {
 
     socket.on('error-msg', ({ msg }) => {
       setErrorMsg(msg);
+      setIsReconnecting(false);
       if (errorTimer.current) clearTimeout(errorTimer.current);
       errorTimer.current = setTimeout(() => setErrorMsg(''), 3000);
+      // If room not found, clear session
+      if (msg === 'חדר לא נמצא') {
+        clearSession();
+      }
+    });
+
+    socket.on('disconnect', () => {
+      setIsReconnecting(true);
+    });
+
+    socket.on('connect', () => {
+      // Handled by socket.js auto-reconnect
+      if (screen !== 'home') {
+        setIsReconnecting(false);
+      }
     });
 
     return () => {
@@ -450,6 +504,8 @@ export default function App() {
       socket.off('lobby-update');
       socket.off('game-state');
       socket.off('error-msg');
+      socket.off('disconnect');
+      socket.off('connect');
     };
   }, []);
 
@@ -483,12 +539,11 @@ export default function App() {
     ).filter(Boolean);
 
     const hasJoker = selectedCardObjects.some(c => c.rank === 'joker');
-    const allJokers = selectedCardObjects.every(c => c.rank === 'joker');
     const realCards = selectedCardObjects.filter(c => c.rank !== 'joker');
 
     if (hasJoker) {
-      // If joker with real cards, auto-infer mirror value
       if (realCards.length > 0) {
+        // Joker with real cards — auto-infer mirror value
         const mirrorRank = realCards[0].rank;
         socket.emit('play-cards', {
           cardIds: selectedCards,
@@ -505,7 +560,7 @@ export default function App() {
 
   const handleJokerChoice = useCallback((choice) => {
     setShowJokerModal(false);
-    if (!choice) return; // cancelled
+    if (!choice) return;
     socket.emit('play-cards', {
       cardIds: selectedCards,
       jokerChoice: choice,
@@ -553,6 +608,13 @@ export default function App() {
   // Render
   return (
     <div className="app">
+      {/* Reconnecting overlay */}
+      {isReconnecting && screen !== 'home' && (
+        <div className="reconnecting-overlay">
+          <div className="reconnecting-msg">מתחבר מחדש...</div>
+        </div>
+      )}
+
       {/* Error toast */}
       {errorMsg && (
         <div className="error-toast">{errorMsg}</div>

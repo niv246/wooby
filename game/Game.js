@@ -416,8 +416,8 @@ class Game {
       return { success: false, error: 'אי אפשר רביעייה של 2' };
     }
 
-    // Count real cards of this rank on pile (jokers don't count)
-    const pileCount = this.pile.allCards.filter(
+    // Count real cards of this rank on pile TOP PLAY (jokers don't count)
+    const pileCount = this.pile.topCards.filter(
       c => c.rank === rank && c.rank !== 'joker'
     ).length;
 
@@ -466,9 +466,10 @@ class Game {
       }
     }
 
-    // Count real cards per rank on pile (no jokers)
+    // Count real cards per rank on pile TOP PLAY ONLY (no jokers)
+    // Only the most recent play counts for completion bursts
     const pileCounts = {};
-    for (const c of this.pile.allCards) {
+    for (const c of this.pile.topCards) {
       if (c.rank !== 'joker' && c.rank !== '2') {
         pileCounts[c.rank] = (pileCounts[c.rank] || 0) + 1;
       }
@@ -694,6 +695,18 @@ class Game {
       });
     }
 
+    // All players in seating order (including self) for the player bar
+    const allPlayers = this.players.map((p, i) => ({
+      id: p.id,
+      name: p.name,
+      cardCount: p.hand.length,
+      finished: p.finished,
+      finishRank: p.finishRank,
+      disconnected: p.disconnected,
+      isCurrentTurn: i === this.currentPlayerIndex,
+      isMe: p.id === playerId,
+    }));
+
     const currentPlayerId = this.players[this.currentPlayerIndex]?.id;
     const isMyTurn = currentPlayerId === playerId;
     const canReset = isMyTurn && this._canReset(playerId);
@@ -740,6 +753,7 @@ class Game {
       phase: this.phase,
       hand: player ? [...player.hand] : [],
       opponents,
+      allPlayers,
       pile: {
         topCards: [...this.pile.topCards],
         topRank: this.pile.topRank,

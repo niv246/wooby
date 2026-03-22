@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
   });
 
   // ==================== JOIN ROOM ====================
-  socket.on('join-room', ({ code, name }) => {
+  socket.on('join-room', ({ code, name, playerId: savedPlayerId }) => {
     if (!name || name.trim().length === 0) {
       socket.emit('error-msg', { msg: 'צריך שם!' });
       return;
@@ -112,8 +112,11 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Check if reconnecting
-    const existing = room.players.find(p => p.name === name.trim() && !p.connected);
+    // Check if reconnecting — match by saved playerId first, then by name
+    const existing = room.players.find(p =>
+      (savedPlayerId && p.id === savedPlayerId) ||
+      (p.name === name.trim() && !p.connected)
+    );
     if (existing) {
       // Reconnect
       existing.socketId = socket.id;
