@@ -445,8 +445,8 @@ html, body {
 }
 
 .pile-empty {
-  width: 66px;
-  height: 94px;
+  width: 62px;
+  height: 88px;
   border: 2px dashed var(--text-dim);
   border-radius: 10px;
   display: flex;
@@ -497,16 +497,16 @@ html, body {
 /* Hand area */
 .hand-area {
   display: flex;
-  padding: 4px 8px 12px;
+  padding: 8px 8px 14px;
   overflow-x: auto;
   justify-content: center;
   flex-shrink: 0;
-  min-height: 140px;
+  min-height: 130px;
   align-items: flex-end;
 }
 
 .hand-area .card {
-  margin-left: -18px;
+  margin-left: -14px;
   flex-shrink: 0;
 }
 
@@ -514,18 +514,22 @@ html, body {
   margin-left: 0;
 }
 
-/* ==================== CARD — Yaniv-style big & bold ==================== */
+/* ==================== CARD — Traditional playing card design ==================== */
 .card {
-  width: 76px;
-  height: 108px;
-  background: #ffffff;
-  border-radius: 10px;
-  border: 1.5px solid #bbb8b0;
+  width: 74px;
+  height: 106px;
+  background: #fffef8;
+  border-radius: 8px;
+  border: 1px solid #d4d0c8;
   position: relative;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.12),
+    0 4px 8px rgba(0,0,0,0.08),
+    0 0 0 0.5px rgba(0,0,0,0.05);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .card:active {
@@ -551,80 +555,144 @@ html, body {
   transform: none;
 }
 
-/* Card colors — strong red and black like real cards */
+/* Card inner wrapper */
+.card-inner {
+  position: absolute;
+  inset: 0;
+}
+
+/* Card colors */
 .card-red .card-rank,
 .card-red .card-suit,
-.card-red .card-center-suit {
-  color: #cc0000;
+.card-red .card-pip,
+.card-red .card-center-suit,
+.card-red .card-face-letter,
+.card-red .card-face-suit {
+  color: #d40000;
 }
 
 .card-black .card-rank,
 .card-black .card-suit,
-.card-black .card-center-suit {
-  color: #111111;
+.card-black .card-pip,
+.card-black .card-center-suit,
+.card-black .card-face-letter,
+.card-black .card-face-suit {
+  color: #1a1a1a;
 }
 
-/* Card corners */
+/* Card corners — compact, traditional */
 .card-corner {
   position: absolute;
-  top: 5px;
-  right: 6px;
+  top: 3px;
+  left: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
+  z-index: 2;
 }
 
 .card-corner-bottom {
   top: auto;
-  right: auto;
-  bottom: 5px;
-  left: 6px;
+  left: auto;
+  bottom: 3px;
+  right: 4px;
   transform: rotate(180deg);
 }
 
 .card-rank {
-  font-family: 'Arial Black', 'Arial', sans-serif;
-  font-size: 22px;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
 }
 
 .card-suit {
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
-  margin-top: 1px;
+  margin-top: 0px;
 }
 
-/* Card center */
-.card-center {
+/* Card body — pip area */
+.card-body {
+  position: absolute;
+  top: 18%;
+  bottom: 18%;
+  left: 12%;
+  right: 12%;
+}
+
+/* Pip — individual suit symbol */
+.card-pip {
+  position: absolute;
+  font-size: 16px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+.card-pip-flip {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.card-pip-large {
+  font-size: 34px;
+}
+
+/* Face cards (J, Q, K) */
+.card-face {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0;
 }
 
-.card-center-suit {
-  font-size: 42px;
+.card-face-letter {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
 }
 
-/* Small cards (pile) — still big enough to read */
+.card-face-suit {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.card-face-suit-bottom {
+  transform: rotate(180deg);
+}
+
+/* Small cards (pile) */
 .card-small {
-  width: 66px;
-  height: 94px;
+  width: 62px;
+  height: 88px;
 }
 
 .card-small .card-rank {
-  font-size: 18px;
-}
-
-.card-small .card-suit {
   font-size: 13px;
 }
 
-.card-small .card-center-suit {
-  font-size: 34px;
+.card-small .card-suit {
+  font-size: 10px;
+}
+
+.card-small .card-pip {
+  font-size: 12px;
+}
+
+.card-small .card-pip-large {
+  font-size: 26px;
+}
+
+.card-small .card-face-letter {
+  font-size: 22px;
+}
+
+.card-small .card-face-suit {
+  font-size: 11px;
 }
 
 /* Joker card */
@@ -639,17 +707,21 @@ html, body {
 
 .joker-star {
   color: var(--gold) !important;
-  font-size: 20px !important;
+  font-size: 16px !important;
 }
 
 .card-joker-text {
-  font-family: 'Arial Black', 'Arial', sans-serif;
-  font-size: 11px;
+  font-family: 'Arial', sans-serif;
+  font-size: 10px;
   font-weight: 900;
   color: var(--gold);
   line-height: 1.3;
   text-align: center;
   letter-spacing: 2px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* Card back */
@@ -657,33 +729,48 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a3a5c, #0d2137);
-  border: 2px solid var(--gold);
+  background: linear-gradient(145deg, #1e5799 0%, #163d6e 50%, #0d2744 100%);
+  border: 1.5px solid #2a6db5;
   cursor: default;
 }
 
 .card-back-inner {
-  width: 80%;
-  height: 80%;
-  border: 2px solid var(--gold-dim);
-  border-radius: 6px;
+  width: 82%;
+  height: 85%;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(245, 197, 66, 0.05) 4px,
-    rgba(245, 197, 66, 0.05) 8px
-  );
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back-pattern {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.04) 3px,
+      rgba(255,255,255,0.04) 6px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.04) 3px,
+      rgba(255,255,255,0.04) 6px
+    );
 }
 
 .card-back-logo {
   font-family: var(--font-display);
-  font-size: 26px;
-  color: var(--gold);
-  opacity: 0.6;
+  font-size: 22px;
+  color: rgba(255,255,255,0.25);
+  z-index: 1;
 }
 
 /* ==================== EXCHANGE SCREEN ==================== */
