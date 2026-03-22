@@ -445,8 +445,8 @@ html, body {
 }
 
 .pile-empty {
-  width: 72px;
-  height: 100px;
+  width: 66px;
+  height: 94px;
   border: 2px dashed var(--text-dim);
   border-radius: 10px;
   display: flex;
@@ -497,16 +497,16 @@ html, body {
 /* Hand area */
 .hand-area {
   display: flex;
-  padding: 6px 12px 14px;
+  padding: 4px 8px 12px;
   overflow-x: auto;
   justify-content: center;
   flex-shrink: 0;
-  min-height: 120px;
+  min-height: 140px;
   align-items: flex-end;
 }
 
 .hand-area .card {
-  margin-left: -14px;
+  margin-left: -18px;
   flex-shrink: 0;
 }
 
@@ -514,17 +514,17 @@ html, body {
   margin-left: 0;
 }
 
-/* ==================== CARD — Yaniv-style classic design ==================== */
+/* ==================== CARD — Yaniv-style big & bold ==================== */
 .card {
-  width: 62px;
-  height: 90px;
+  width: 76px;
+  height: 108px;
   background: #ffffff;
   border-radius: 10px;
-  border: 2px solid #d0ccc4;
+  border: 1.5px solid #bbb8b0;
   position: relative;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.15);
   flex-shrink: 0;
 }
 
@@ -533,13 +533,13 @@ html, body {
 }
 
 .card-selected {
-  transform: translateY(-18px);
+  transform: translateY(-20px);
   border-color: var(--gold);
-  box-shadow: 0 6px 20px var(--gold-glow), 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 24px var(--gold-glow), 0 3px 8px rgba(0,0,0,0.25);
 }
 
 .card-selected:active {
-  transform: translateY(-18px) scale(0.95);
+  transform: translateY(-20px) scale(0.95);
 }
 
 .card-disabled {
@@ -551,24 +551,24 @@ html, body {
   transform: none;
 }
 
-/* Card colors */
+/* Card colors — strong red and black like real cards */
 .card-red .card-rank,
 .card-red .card-suit,
 .card-red .card-center-suit {
-  color: #d42a2a;
+  color: #cc0000;
 }
 
 .card-black .card-rank,
 .card-black .card-suit,
 .card-black .card-center-suit {
-  color: #1a1a2e;
+  color: #111111;
 }
 
 /* Card corners */
 .card-corner {
   position: absolute;
-  top: 4px;
-  right: 5px;
+  top: 5px;
+  right: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -578,22 +578,22 @@ html, body {
 .card-corner-bottom {
   top: auto;
   right: auto;
-  bottom: 4px;
-  left: 5px;
+  bottom: 5px;
+  left: 6px;
   transform: rotate(180deg);
 }
 
 .card-rank {
-  font-family: 'Arial', 'Helvetica', sans-serif;
-  font-size: 17px;
+  font-family: 'Arial Black', 'Arial', sans-serif;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1;
 }
 
 .card-suit {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
-  margin-top: 0px;
+  margin-top: 1px;
 }
 
 /* Card center */
@@ -606,25 +606,25 @@ html, body {
 }
 
 .card-center-suit {
-  font-size: 34px;
+  font-size: 42px;
 }
 
-/* Small cards (pile) */
+/* Small cards (pile) — still big enough to read */
 .card-small {
-  width: 54px;
-  height: 78px;
+  width: 66px;
+  height: 94px;
 }
 
 .card-small .card-rank {
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .card-small .card-suit {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .card-small .card-center-suit {
-  font-size: 26px;
+  font-size: 34px;
 }
 
 /* Joker card */
@@ -639,17 +639,17 @@ html, body {
 
 .joker-star {
   color: var(--gold) !important;
-  font-size: 15px !important;
+  font-size: 20px !important;
 }
 
 .card-joker-text {
-  font-family: 'Arial', sans-serif;
-  font-size: 10px;
+  font-family: 'Arial Black', 'Arial', sans-serif;
+  font-size: 11px;
   font-weight: 900;
   color: var(--gold);
-  line-height: 1.2;
+  line-height: 1.3;
   text-align: center;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
 /* Card back */
@@ -681,7 +681,7 @@ html, body {
 
 .card-back-logo {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 26px;
   color: var(--gold);
   opacity: 0.6;
 }
