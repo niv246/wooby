@@ -577,7 +577,7 @@ class Game {
     return [...valuesSet].sort((a, b) => {
       if (a === 'joker') return 1;
       if (b === 'joker') return -1;
-      if (a === '2') return -1;
+      if (a === '2') return 1;
       if (b === '2') return -1;
       return rankValue(a) - rankValue(b);
     });
@@ -683,6 +683,7 @@ class Game {
         finished: p.finished,
         finishRank: p.finishRank,
         disconnected: p.disconnected,
+        disconnectTime: p.disconnectTime || null,
         isCurrentTurn: i === this.currentPlayerIndex,
       });
     }
@@ -695,6 +696,7 @@ class Game {
       finished: p.finished,
       finishRank: p.finishRank,
       disconnected: p.disconnected,
+      disconnectTime: p.disconnectTime || null,
       isCurrentTurn: i === this.currentPlayerIndex,
       isMe: p.id === playerId,
     }));

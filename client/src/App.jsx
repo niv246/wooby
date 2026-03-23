@@ -212,6 +212,26 @@ function BurstModal({ bursts, onBurst, onCancel }) {
   );
 }
 
+// ==================== DISCONNECT TIMER ====================
+function DisconnectTimer({ disconnectTime }) {
+  const [remaining, setRemaining] = useState(30);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - disconnectTime) / 1000);
+      const left = Math.max(0, 30 - elapsed);
+      setRemaining(left);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [disconnectTime]);
+
+  return (
+    <div className="disconnect-timer">
+      ⏱️ {remaining}s
+    </div>
+  );
+}
+
 // ==================== OPPONENT COMPONENT ====================
 function Opponent({ player, position, isShooa }) {
   const isActive = player.isCurrentTurn;
@@ -249,6 +269,9 @@ function Opponent({ player, position, isShooa }) {
           </span>
         )}
       </div>
+      {player.disconnected && player.disconnectTime && (
+        <DisconnectTimer disconnectTime={player.disconnectTime} />
+      )}
     </div>
   );
 }
@@ -303,7 +326,7 @@ function ExchangeScreen({ gameState, selectedCards, onToggleCard, onExchangePick
           </p>
           <div className="value-grid">
             {exchange.values.map(v => (
-              <button key={v} className="btn-value btn-large" onClick={() => onExchangePick(v)}>
+              <button key={v} className={`btn-value btn-large${v === '2' ? ' btn-value-two' : ''}${v === 'joker' ? ' btn-value-joker' : ''}`} onClick={() => onExchangePick(v)}>
                 {RANK_LABELS[v] || v}
               </button>
             ))}
@@ -481,20 +504,44 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
             <div className="pile-empty-shadow" />
           ) : (
             <div className="pile-stack">
-              {(pile.allCards || pile.topCards).slice(-8).map((card, i, arr) => (
-                <div
-                  key={card.id || `pile-${i}`}
-                  className="pile-card-wrapper"
-                  style={{
-                    '--pile-z': i,
-                    '--pile-rot': `${((i * 17 + 3) % 17) - 8}deg`,
-                    '--pile-x': `${((i * 7 + 2) % 7) - 3}px`,
-                    '--pile-y': `${((i * 5 + 1) % 5) - 2}px`,
-                  }}
-                >
-                  <Card card={card} small />
+              {/* Previous cards — allCards minus the current topCards */}
+              {(() => {
+                const prevCards = (pile.allCards || []).slice(0, -((pile.topCards || []).length || 1));
+                const shown = prevCards.slice(-4);
+                return shown.length > 0 && (
+                  <div className="pile-previous">
+                    {shown.map((card, i) => (
+                      <div key={card.id || `prev-${i}`} className="pile-card-wrapper"
+                        style={{
+                          '--pile-z': i,
+                          '--pile-rot': `${((i * 17 + 3) % 17) - 8}deg`,
+                          '--pile-x': `${((i * 7 + 2) % 7) - 3}px`,
+                          '--pile-y': `${((i * 5 + 1) % 5) - 2}px`,
+                        }}>
+                        <Card card={card} small />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+              {/* Current play — topCards side by side */}
+              <div className="pile-current">
+                {(pile.topCards || []).map((card, i) => (
+                  <div key={card.id || `top-${i}`} className="pile-card-wrapper"
+                    style={{
+                      '--pile-z': 10 + i,
+                      '--pile-rot': `${((i * 13 + 5) % 7) - 3}deg`,
+                    }}>
+                    <Card card={card} small />
+                  </div>
+                ))}
+              </div>
+              {/* Quantity label for pairs/triples */}
+              {pile.quantity > 1 && (
+                <div className="pile-quantity-label">
+                  {pile.quantity === 2 ? 'זוג' : 'שלישיית'} {RANK_LABELS[pile.topRank] || pile.topRank}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
@@ -551,12 +598,15 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
           </button>
 
           {/* Burst — lights up when player selects valid burst cards */}
-          <button className="btn-burst" onClick={onBurstClick}
-            disabled={!selectedBurst}>
-            {selectedBurst
-              ? `💥 רביעיית ${selectedBurst.rank}!`
-              : '💥 התפרצות'}
-          </button>
+          {possibleBursts.length > 0 && (
+            <button className={`btn-burst ${selectedBurst ? 'burst-ready' : 'burst-available'}`}
+              onClick={onBurstClick}
+              disabled={!selectedBurst}>
+              {selectedBurst
+                ? `💥 רביעיית ${selectedBurst.rank}!`
+                : `💥 רביעיית ${possibleBursts[0]?.rank}`}
+            </button>
+          )}
         </div>
       </div>
     </div>

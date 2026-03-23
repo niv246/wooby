@@ -194,6 +194,18 @@ html, body {
   transform: scale(0.95);
 }
 
+.btn-value-two {
+  background: linear-gradient(135deg, #fde0d0, #f8c8b0) !important;
+  border-color: #e8a080 !important;
+  color: #cc4400 !important;
+}
+
+.btn-value-joker {
+  background: linear-gradient(135deg, #e8d0f0, #d0b0e8) !important;
+  border-color: #b090d0 !important;
+  color: #6b2fa0 !important;
+}
+
 /* Burst button — red pulsing */
 .btn-burst {
   font-family: var(--font-display);
@@ -580,6 +592,21 @@ html, body {
   opacity: 0.3;
 }
 
+.disconnect-timer {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ff4444;
+  background: rgba(255, 68, 68, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  animation: timerBlink 1s infinite;
+}
+
+@keyframes timerBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* Fan of face-down cards for opponents */
 .opponent-fan {
   position: relative;
@@ -675,14 +702,14 @@ html, body {
 
 .pile-stack {
   position: relative;
-  width: 70px;
-  height: 95px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+  min-height: 95px;
 }
 
 .pile-card-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
   z-index: var(--pile-z, 0);
   transform: rotate(var(--pile-rot, 0deg)) translate(var(--pile-x, 0px), var(--pile-y, 0px));
   transition: transform 0.2s ease-out;
@@ -690,6 +717,54 @@ html, body {
 
 .pile-card-wrapper .card-small {
   box-shadow: 1px 2px 6px rgba(0,0,0,0.25);
+}
+
+/* Current play — topCards side by side with overlap */
+.pile-current {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  position: relative;
+}
+
+.pile-current .pile-card-wrapper {
+  margin-left: -18px;
+  position: relative;
+}
+
+.pile-current .pile-card-wrapper:first-child {
+  margin-left: 0;
+}
+
+/* Previous cards — smaller/translucent underneath */
+.pile-previous {
+  position: relative;
+  width: 70px;
+  height: 50px;
+  opacity: 0.4;
+  transform: scale(0.7);
+  margin-bottom: -20px;
+  z-index: 0;
+}
+
+.pile-previous .pile-card-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Quantity label below pile */
+.pile-quantity-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-top: 4px;
+  white-space: nowrap;
+  text-align: center;
 }
 
 /* ==================== SEVEN ARROW INDICATOR ==================== */
@@ -885,12 +960,37 @@ html, body {
   border-radius: 6px;
 }
 
-/* Burst button: hidden when not available, pops in when active */
+/* Burst button: shown only when possibleBursts exist */
 .bottom-bar .btn-burst {
   transition: opacity 0.2s, transform 0.2s;
 }
-.bottom-bar .btn-burst:disabled {
-  display: none;
+
+/* Burst available — pulsing border, semi-transparent hint */
+.burst-available {
+  background: linear-gradient(180deg, #8a6060 0%, #6a4040 50%, #4a2020 100%) !important;
+  border: 2px dashed #ff6666 !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+  animation: burst-available-pulse 1.2s infinite alternate;
+}
+
+@keyframes burst-available-pulse {
+  from { border-color: #ff6666; box-shadow: 0 0 4px rgba(204, 0, 0, 0.2); }
+  to { border-color: #ff9999; box-shadow: 0 0 12px rgba(204, 0, 0, 0.4); }
+}
+
+/* Burst ready — full red with pulsing glow */
+.burst-ready {
+  background: linear-gradient(180deg, #ff4444 0%, #cc0000 50%, #990000 100%) !important;
+  border: 2px solid #ff6666 !important;
+  opacity: 1;
+  cursor: pointer;
+  animation: burst-ready-glow 0.6s infinite alternate;
+}
+
+@keyframes burst-ready-glow {
+  from { box-shadow: 0 0 8px var(--red-glow); }
+  to { box-shadow: 0 0 24px var(--red-glow), 0 0 48px rgba(204, 0, 0, 0.3); }
 }
 
 /* ==================== CARDS — Yaniv style (clean, readable) ==================== */

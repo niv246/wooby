@@ -136,7 +136,10 @@ io.on('connection', (socket) => {
       // Mark as reconnected in game
       if (room.game) {
         const gamePlayer = room.game.getPlayer(playerId);
-        if (gamePlayer) gamePlayer.disconnected = false;
+        if (gamePlayer) {
+          gamePlayer.disconnected = false;
+          gamePlayer.disconnectTime = null;
+        }
       }
 
       socket.emit('room-joined', {
@@ -346,11 +349,15 @@ io.on('connection', (socket) => {
     if (!player) return;
 
     player.connected = false;
+    player.disconnectTime = Date.now();
 
     // Mark as disconnected in game
     if (room.game) {
       const gamePlayer = room.game.getPlayer(playerId);
-      if (gamePlayer) gamePlayer.disconnected = true;
+      if (gamePlayer) {
+        gamePlayer.disconnected = true;
+        gamePlayer.disconnectTime = Date.now();
+      }
       broadcastGameState(currentRoom);
     } else {
       broadcastLobby(currentRoom);
@@ -379,7 +386,7 @@ io.on('connection', (socket) => {
           broadcastLobby(currentRoom);
         }
       }
-    }, 5 * 60 * 1000)); // 5 minutes
+    }, 30 * 1000)); // 30 seconds
   });
 });
 
