@@ -324,6 +324,10 @@ class Game {
       return { ...c };
     });
     this.pile.allCards.push(...pileCards);
+    // Trim internal pile to last 20 cards to prevent unbounded growth
+    if (this.pile.allCards.length > 20) {
+      this.pile.allCards = this.pile.allCards.slice(-20);
+    }
     this.pile.topCards = pileCards;
     this.pile.topRank = effective.rank;
     this.pile.quantity = effective.quantity;

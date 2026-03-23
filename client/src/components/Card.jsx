@@ -13,7 +13,7 @@ const RANK_DISPLAY = {
   J: 'J', Q: 'Q', K: 'K', A: 'A',
 };
 
-export default function Card({ card, selected, onClick, small, faceDown, disabled, style }) {
+export default React.memo(function Card({ card, selected, onClick, small, faceDown, disabled, style }) {
   if (faceDown) {
     return (
       <div className={`card card-back ${small ? 'card-small' : ''}`} style={style}>
@@ -71,4 +71,4 @@ export default function Card({ card, selected, onClick, small, faceDown, disable
       </div>
     </div>
   );
-}
+});

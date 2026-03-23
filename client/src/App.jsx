@@ -743,6 +743,9 @@ export default function App() {
   const [nameInput, setNameInput] = useState('');
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [gameOverSaved, setGameOverSaved] = useState(false);
+  const [cachedStats, setCachedStats] = useState(() => getStats());
+  const [cachedSessions, setCachedSessions] = useState(() => getSessions());
+  const [actionPending, setActionPending] = useState(false);
 
   useEffect(() => {
     const session = getSession();
@@ -795,6 +798,7 @@ export default function App() {
         prev.filter(id => state.hand.some(c => c.id === id))
       );
       setIsReconnecting(false);
+      setActionPending(false);
       if (state.phase === 'playing' || state.phase === 'exchange' || state.phase === 'gameOver') {
         setScreen('game');
       }
@@ -803,6 +807,7 @@ export default function App() {
     socket.on('error-msg', ({ msg }) => {
       setErrorMsg(msg);
       setIsReconnecting(false);
+      setActionPending(false);
       if (errorTimer.current) clearTimeout(errorTimer.current);
       errorTimer.current = setTimeout(() => setErrorMsg(''), 3000);
       if (msg === 'חדר לא נמצא') clearSession();
@@ -861,6 +866,8 @@ export default function App() {
         roomCode: roomCode,
       });
 
+      setCachedStats(getStats());
+      setCachedSessions(getSessions());
       setGameOverSaved(true);
     }
   }, [gameState?.phase]);
@@ -890,6 +897,7 @@ export default function App() {
   }, []);
 
   const handlePlay = useCallback(() => {
+    if (actionPending) return;
     if (!gameState || selectedCards.length === 0) return;
     const selectedCardObjects = selectedCards.map(id =>
       gameState.hand.find(c => c.id === id)
@@ -899,6 +907,7 @@ export default function App() {
 
     if (hasJoker) {
       if (realCards.length > 0) {
+        setActionPending(true);
         socket.emit('play-cards', {
           cardIds: selectedCards,
           jokerChoice: { type: 'mirror', value: realCards[0].rank },
@@ -907,23 +916,35 @@ export default function App() {
         setShowJokerModal(true);
       }
     } else {
+      setActionPending(true);
       socket.emit('play-cards', { cardIds: selectedCards });
     }
-  }, [selectedCards, gameState]);
+  }, [selectedCards, gameState, actionPending]);
 
   const handleJokerChoice = useCallback((choice) => {
     setShowJokerModal(false);
     if (!choice) return;
+    setActionPending(true);
     socket.emit('play-cards', { cardIds: selectedCards, jokerChoice: choice });
   }, [selectedCards]);
 
-  const handlePass = useCallback(() => socket.emit('pass'), []);
-  const handleReset = useCallback(() => socket.emit('reset-pile'), []);
+  const handlePass = useCallback(() => {
+    if (actionPending) return;
+    setActionPending(true);
+    socket.emit('pass');
+  }, [actionPending]);
+  const handleReset = useCallback(() => {
+    if (actionPending) return;
+    setActionPending(true);
+    socket.emit('reset-pile');
+  }, [actionPending]);
 
   const handleBurstClick = useCallback(() => {
+    if (actionPending) return;
     if (!gameState || selectedCards.length === 0) return;
+    setActionPending(true);
     socket.emit('burst', { cardIds: selectedCards });
-  }, [gameState, selectedCards]);
+  }, [gameState, selectedCards, actionPending]);
 
   const handleBurst = useCallback((cardIds) => {
     setShowBurstModal(false);
@@ -993,35 +1014,35 @@ export default function App() {
 
             <div className="stats-grid">
               <div className="stat-card">
-                <span className="stat-value">{getStats().totalGames}</span>
+                <span className="stat-value">{cachedStats.totalGames}</span>
                 <span className="stat-label">משחקים</span>
               </div>
               <div className="stat-card gold">
-                <span className="stat-value">{getStats().wins} 👑</span>
+                <span className="stat-value">{cachedStats.wins} 👑</span>
                 <span className="stat-label">נצחונות</span>
               </div>
               <div className="stat-card red">
-                <span className="stat-value">{getStats().spiked} 🍑</span>
+                <span className="stat-value">{cachedStats.spiked} 🍑</span>
                 <span className="stat-label">שועה</span>
               </div>
               <div className="stat-card">
-                <span className="stat-value">{getStats().second} 🥈</span>
+                <span className="stat-value">{cachedStats.second} 🥈</span>
                 <span className="stat-label">מקום שני</span>
               </div>
               <div className="stat-card">
-                <span className="stat-value">{getStats().totalBursts} 💥</span>
+                <span className="stat-value">{cachedStats.totalBursts} 💥</span>
                 <span className="stat-label">רביעיות</span>
               </div>
               <div className="stat-card">
-                <span className="stat-value">{getStats().totalBurns} 🔥</span>
+                <span className="stat-value">{cachedStats.totalBurns} 🔥</span>
                 <span className="stat-label">שריפות</span>
               </div>
             </div>
 
-            {getStats().totalGames > 0 && (
+            {cachedStats.totalGames > 0 && (
               <div className="stats-percentages">
-                <p>אחוז נצחון: <strong>{Math.round(getStats().wins / getStats().totalGames * 100)}%</strong></p>
-                <p>אחוז שועה: <strong>{Math.round(getStats().spiked / getStats().totalGames * 100)}%</strong></p>
+                <p>אחוז נצחון: <strong>{Math.round(cachedStats.wins / cachedStats.totalGames * 100)}%</strong></p>
+                <p>אחוז שועה: <strong>{Math.round(cachedStats.spiked / cachedStats.totalGames * 100)}%</strong></p>
               </div>
             )}
 
@@ -1029,7 +1050,7 @@ export default function App() {
 
             <h3 className="sessions-title">📜 משחקים אחרונים</h3>
             <div className="sessions-list">
-              {getSessions().map(session => (
+              {cachedSessions.map(session => (
                 <div key={session.id} className="session-card">
                   <div className="session-header">
                     <span className="session-date">
@@ -1055,7 +1076,7 @@ export default function App() {
                   </div>
                 </div>
               ))}
-              {getSessions().length === 0 && (
+              {cachedSessions.length === 0 && (
                 <p className="no-sessions">עוד לא שיחקת! 🃏</p>
               )}
             </div>
@@ -1071,7 +1092,7 @@ export default function App() {
           setNameInput={setNameInput}
           onCreateRoom={handleCreateRoom}
           onJoinRoom={handleJoinRoom}
-          onOpenStats={() => setSideMenuOpen(true)}
+          onOpenStats={() => { setCachedStats(getStats()); setCachedSessions(getSessions()); setSideMenuOpen(true); }}
         />
       )}
 
