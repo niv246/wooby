@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import socket, { saveSession, getSession, clearSession } from './socket';
 import Card from './components/Card';
+import { getPlayer, savePlayer, clearPlayer, getStats, updateStats, getSessions, addSession } from './utils/storage';
 
 const RANK_LABELS = {
   '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7',
@@ -22,8 +23,7 @@ function getOpponentPositions(count) {
 }
 
 // ==================== HOME SCREEN ====================
-function HomeScreen({ onCreateRoom, onJoinRoom }) {
-  const [name, setName] = useState('');
+function HomeScreen({ player, setPlayer, nameInput, setNameInput, onCreateRoom, onJoinRoom, onOpenStats }) {
   const [joinCode, setJoinCode] = useState('');
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -36,6 +36,11 @@ function HomeScreen({ onCreateRoom, onJoinRoom }) {
 
   return (
     <div className="screen home-screen fade-in">
+      {player && (
+        <button className="stats-btn" onClick={onOpenStats}>
+          📊
+        </button>
+      )}
       {!isInstalled && (
         <button className="install-btn" onClick={() => setShowInstallGuide(true)}>
           📲
@@ -70,53 +75,79 @@ function HomeScreen({ onCreateRoom, onJoinRoom }) {
           </div>
         </div>
       )}
-      {/* Logo top */}
-      <div className="home-top">
-        <img src="/logo-clean.png" alt="שועה" className="home-logo" />
-      </div>
 
-      {/* Buttons at bottom */}
-      <div className="home-bottom">
-        <input
-          className="input-field"
-          type="text"
-          placeholder="מה השם שלך?"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          maxLength={12}
-          autoFocus
-        />
+      {player ? (
+        <>
+          <div className="home-top">
+            <img src="/logo-clean.png" alt="שועה" className="home-logo" />
+          </div>
 
-        <button
-          className="btn-wood btn-large"
-          onClick={() => name.trim() && onCreateRoom(name.trim())}
-          disabled={!name.trim()}
-        >
-          פתח חדר חדש
-        </button>
+          <div className="home-bottom">
+            <p className="welcome-back">שלום {player.name}! 👋</p>
 
-        <div className="divider">
-          <span>— או הצטרף —</span>
-        </div>
+            <button className="btn-wood btn-large btn-fire" onClick={() => {
+              onCreateRoom(player.name);
+            }}>
+              פתח חדר חדש
+            </button>
 
-        <div className="join-row">
-          <input
-            className="input-field input-code"
-            type="text"
-            placeholder="קוד"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={5}
-          />
-          <button
-            className="btn-wood"
-            onClick={() => name.trim() && joinCode.trim() && onJoinRoom(name.trim(), joinCode.trim())}
-            disabled={!name.trim() || joinCode.trim().length < 5}
-          >
-            הצטרף
-          </button>
-        </div>
-      </div>
+            <div className="home-divider">— או הצטרף —</div>
+
+            <div className="join-row">
+              <input
+                className="input-field input-code"
+                placeholder="קוד"
+                value={joinCode}
+                onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                maxLength={5}
+              />
+              <button className="btn-wood" onClick={() => {
+                if (joinCode.trim().length >= 5) onJoinRoom(player.name, joinCode.trim());
+              }}
+                disabled={joinCode.trim().length < 5}
+              >
+                הצטרף
+              </button>
+            </div>
+
+            <button className="change-name-btn" onClick={() => {
+              clearPlayer();
+              setPlayer(null);
+            }}>
+              שנה שם
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="home-top">
+            <img src="/logo-clean.png" alt="שועה" className="home-logo" />
+          </div>
+
+          <div className="home-bottom">
+            <p className="home-subtitle">🍑 משחק הקלפים של ה"שועה" שלך!</p>
+
+            <input
+              className="input-field"
+              placeholder="מה השם שלך?"
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              maxLength={12}
+              autoFocus
+            />
+            <button
+              className="btn-wood btn-large btn-fire"
+              disabled={!nameInput.trim()}
+              onClick={() => {
+                const p = savePlayer(nameInput.trim());
+                setPlayer(p);
+              }}
+            >
+              יאללה! 🎴
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -708,6 +739,11 @@ export default function App() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const errorTimer = useRef(null);
 
+  const [player, setPlayer] = useState(getPlayer());
+  const [nameInput, setNameInput] = useState('');
+  const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const [gameOverSaved, setGameOverSaved] = useState(false);
+
   useEffect(() => {
     const session = getSession();
     if (session) {
@@ -787,6 +823,53 @@ export default function App() {
       socket.off('connect');
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState?.phase === 'gameOver' && !gameOverSaved) {
+      const allPlayers = gameState.allPlayers || [];
+      const totalPlayers = allPlayers.length;
+      const myFinishIdx = allPlayers.findIndex(p => p.isMe);
+      const myRank = myFinishIdx !== -1 ? (allPlayers[myFinishIdx].finishRank || myFinishIdx + 1) : totalPlayers;
+      const isShua = myRank === totalPlayers;
+      const isSecondShua = myRank === totalPlayers - 1 && totalPlayers >= 4;
+
+      updateStats({
+        rank: myRank,
+        isShua,
+        isSecondShua,
+        bursts: gameState.myBursts || 0,
+        burns: gameState.myBurns || 0,
+      });
+
+      addSession({
+        id: `game-${Date.now()}`,
+        date: Date.now(),
+        players: allPlayers.map(p => p.name),
+        results: allPlayers
+          .filter(p => p.finishRank)
+          .sort((a, b) => a.finishRank - b.finishRank)
+          .map(p => ({
+            name: p.name,
+            rank: p.finishRank,
+            title: p.finishRank === 1 ? 'מלך' :
+                   p.finishRank === totalPlayers ? 'שועה' :
+                   (p.finishRank === totalPlayers - 1 && totalPlayers >= 4) ? 'סקנד שועה' : '',
+          })),
+        myRank,
+        myBursts: gameState.myBursts || 0,
+        myBurns: gameState.myBurns || 0,
+        roomCode: roomCode,
+      });
+
+      setGameOverSaved(true);
+    }
+  }, [gameState?.phase]);
+
+  useEffect(() => {
+    if (gameState?.phase === 'playing') {
+      setGameOverSaved(false);
+    }
+  }, [gameState?.phase]);
 
   const handleCreateRoom = useCallback((name) => {
     socket.emit('create-room', { name });
@@ -900,8 +983,96 @@ export default function App() {
         />
       )}
 
+      {sideMenuOpen && (
+        <div className="side-menu-overlay" onClick={() => setSideMenuOpen(false)}>
+          <div className="side-menu" onClick={e => e.stopPropagation()}>
+            <button className="side-menu-close" onClick={() => setSideMenuOpen(false)}>✕</button>
+
+            <h2 className="side-menu-title">📊 הסטטיסטיקות שלי</h2>
+            <p className="side-menu-player">{player?.name}</p>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <span className="stat-value">{getStats().totalGames}</span>
+                <span className="stat-label">משחקים</span>
+              </div>
+              <div className="stat-card gold">
+                <span className="stat-value">{getStats().wins} 👑</span>
+                <span className="stat-label">נצחונות</span>
+              </div>
+              <div className="stat-card red">
+                <span className="stat-value">{getStats().spiked} 🍑</span>
+                <span className="stat-label">שועה</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-value">{getStats().second} 🥈</span>
+                <span className="stat-label">מקום שני</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-value">{getStats().totalBursts} 💥</span>
+                <span className="stat-label">רביעיות</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-value">{getStats().totalBurns} 🔥</span>
+                <span className="stat-label">שריפות</span>
+              </div>
+            </div>
+
+            {getStats().totalGames > 0 && (
+              <div className="stats-percentages">
+                <p>אחוז נצחון: <strong>{Math.round(getStats().wins / getStats().totalGames * 100)}%</strong></p>
+                <p>אחוז שועה: <strong>{Math.round(getStats().spiked / getStats().totalGames * 100)}%</strong></p>
+              </div>
+            )}
+
+            <div className="side-menu-divider" />
+
+            <h3 className="sessions-title">📜 משחקים אחרונים</h3>
+            <div className="sessions-list">
+              {getSessions().map(session => (
+                <div key={session.id} className="session-card">
+                  <div className="session-header">
+                    <span className="session-date">
+                      {new Date(session.date).toLocaleDateString('he-IL', {
+                        day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })}
+                    </span>
+                    <span className="session-rank">
+                      {session.myRank === 1 ? '👑' :
+                       session.myRank === session.results.length ? '🍑' :
+                       `#${session.myRank}`}
+                    </span>
+                  </div>
+                  <div className="session-players">
+                    {session.results.map((r, i) => (
+                      <span
+                        key={i}
+                        className={`session-player ${r.rank === 1 ? 'gold' : r.title === 'שועה' ? 'red' : ''}`}
+                      >
+                        {r.rank === 1 ? '👑' : r.title === 'שועה' ? '🍑' : `${r.rank}.`} {r.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {getSessions().length === 0 && (
+                <p className="no-sessions">עוד לא שיחקת! 🃏</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {screen === 'home' && (
-        <HomeScreen onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
+        <HomeScreen
+          player={player}
+          setPlayer={setPlayer}
+          nameInput={nameInput}
+          setNameInput={setNameInput}
+          onCreateRoom={handleCreateRoom}
+          onJoinRoom={handleJoinRoom}
+          onOpenStats={() => setSideMenuOpen(true)}
+        />
       )}
 
       {screen === 'lobby' && (

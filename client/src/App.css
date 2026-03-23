@@ -1839,3 +1839,234 @@ html, body {
   color: rgba(255,255,255,0.7);
   margin-bottom: min(4vw, 16px);
 }
+
+/* === Welcome back === */
+.welcome-back {
+  font-family: 'Fredoka One', cursive;
+  font-size: min(5vw, 22px);
+  color: #3a2a1a;
+  margin-bottom: min(3vw, 12px);
+}
+
+.change-name-btn {
+  background: transparent;
+  border: none;
+  color: rgba(58, 42, 26, 0.5);
+  font-size: min(3vw, 12px);
+  font-family: 'Heebo', sans-serif;
+  cursor: pointer;
+  margin-top: min(3vw, 12px);
+  text-decoration: underline;
+}
+
+/* === Stats button === */
+.stats-btn {
+  position: absolute;
+  top: min(3vw, 12px);
+  left: min(3vw, 12px);
+  width: min(11vw, 44px);
+  height: min(11vw, 44px);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  font-size: min(6vw, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+}
+
+/* === Side menu === */
+.side-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+}
+
+.side-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(82vw, 340px);
+  height: 100%;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(8px);
+  padding: min(6vw, 24px);
+  padding-top: max(env(safe-area-inset-top), min(6vw, 24px));
+  overflow-y: auto;
+  animation: sideSlideIn 300ms ease-out;
+  color: white;
+}
+
+@keyframes sideSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.side-menu-close {
+  position: absolute;
+  top: max(env(safe-area-inset-top), min(3vw, 12px));
+  left: min(3vw, 12px);
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  width: min(8vw, 32px);
+  height: min(8vw, 32px);
+  border-radius: 50%;
+  font-size: min(4vw, 16px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.side-menu-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: min(6vw, 24px);
+  color: #d4a846;
+  margin-bottom: min(2vw, 8px);
+  text-align: center;
+}
+
+.side-menu-player {
+  text-align: center;
+  font-size: min(4vw, 16px);
+  color: rgba(255,255,255,0.6);
+  margin-bottom: min(4vw, 16px);
+}
+
+/* === Stats grid === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: min(2vw, 8px);
+  margin-bottom: min(4vw, 16px);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: min(3vw, 12px);
+  padding: min(3vw, 12px) min(1.5vw, 6px);
+  text-align: center;
+}
+
+.stat-card.gold {
+  background: rgba(212, 168, 70, 0.15);
+  border: 1px solid rgba(212, 168, 70, 0.3);
+}
+
+.stat-card.red {
+  background: rgba(255, 68, 68, 0.15);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.stat-value {
+  display: block;
+  font-size: min(6vw, 24px);
+  font-weight: 800;
+  margin-bottom: min(0.5vw, 2px);
+}
+
+.stat-label {
+  font-size: min(2.8vw, 11px);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* === Percentages === */
+.stats-percentages {
+  text-align: center;
+  font-size: min(3.5vw, 14px);
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: min(4vw, 16px);
+  line-height: 1.8;
+}
+
+.stats-percentages strong {
+  color: #d4a846;
+}
+
+/* === Divider === */
+.side-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: min(4vw, 16px) 0;
+}
+
+/* === Sessions history === */
+.sessions-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: min(4.5vw, 18px);
+  color: #d4a846;
+  margin-bottom: min(3vw, 12px);
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: min(2vw, 8px);
+}
+
+.session-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: min(3vw, 12px);
+  padding: min(3vw, 12px);
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: min(2vw, 8px);
+}
+
+.session-date {
+  font-size: min(2.8vw, 11px);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.session-rank {
+  font-size: min(5vw, 20px);
+}
+
+.session-players {
+  display: flex;
+  flex-direction: column;
+  gap: min(0.5vw, 2px);
+}
+
+.session-player {
+  font-size: min(3vw, 12px);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.session-player.gold {
+  color: #d4a846;
+  font-weight: 700;
+}
+
+.session-player.red {
+  color: #ff6b6b;
+}
+
+.no-sessions {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: min(3.5vw, 14px);
+  padding: min(6vw, 24px);
+}
+
+.home-divider {
+  color: rgba(58, 42, 26, 0.4);
+  font-size: min(3.5vw, 14px);
+  text-align: center;
+  margin: min(3vw, 12px) 0;
+}
+
+.home-subtitle {
+  font-size: min(4vw, 16px);
+  color: #3a2a1a;
+  text-align: center;
+  margin-bottom: min(3vw, 12px);
+}

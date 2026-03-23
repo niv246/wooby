@@ -74,6 +74,8 @@ class Game {
       finished: false,
       finishRank: null,
       disconnected: false,
+      bursts: 0,
+      burns: 0,
     };
   }
 
@@ -264,6 +266,7 @@ class Game {
       }
 
       this._removeCardsFromHand(currentPlayer, cardIds);
+      currentPlayer.burns++;
       const display = effective.rank === '2' ? '2' : '🃏';
       this._addLog(`${currentPlayer.name} שורף עם ${display}! 🔥`);
       this._resetPileState();
@@ -456,6 +459,7 @@ class Game {
 
     // Valid burst!
     this._removeCardsFromHand(player, cardIds);
+    player.bursts++;
     this._addLog(`${player.name} — רביעייה ${rank}! 💥`);
     this._resetPileState();
 
@@ -817,6 +821,8 @@ class Game {
       myId: playerId,
       myRank,
       shooaPlayerId,
+      myBursts: player ? player.bursts : 0,
+      myBurns: player ? player.burns : 0,
     };
   }
 }
