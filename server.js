@@ -339,6 +339,51 @@ io.on('connection', (socket) => {
     broadcastGameState(currentRoom);
   });
 
+  // ==================== LEAVE ROOM ====================
+  socket.on('leave-room', () => {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+
+    if (room.game && room.game.phase !== 'gameOver') {
+      // Mid-game — remove player, discard their cards
+      room.game.removePlayer(playerId);
+      room.players = room.players.filter(p => p.id !== playerId);
+
+      // If host left — transfer to someone else
+      if (playerId === room.hostId && room.players.length > 0) {
+        room.hostId = room.players[0].id;
+      }
+
+      // If fewer than 2 players — game over
+      if (room.players.length < 2 && room.game.phase === 'playing') {
+        room.game.phase = 'gameOver';
+        const remaining = room.players[0];
+        if (remaining) {
+          room.game._addLog(`${remaining.name} ניצח! (כולם עזבו)`);
+        }
+      }
+
+      broadcastGameState(currentRoom);
+
+    } else {
+      // In lobby or game over — just remove
+      room.players = room.players.filter(p => p.id !== playerId);
+      if (playerId === room.hostId && room.players.length > 0) {
+        room.hostId = room.players[0].id;
+      }
+      broadcastLobby(currentRoom);
+    }
+
+    socket.leave(currentRoom);
+    currentRoom = null;
+
+    // Empty room — delete
+    if (room.players.length === 0) {
+      rooms.delete(room.code);
+    }
+  });
+
   // ==================== DISCONNECT ====================
   socket.on('disconnect', () => {
     if (!currentRoom || !playerId) return;

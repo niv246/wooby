@@ -80,12 +80,13 @@ function HomeScreen({ onCreateRoom, onJoinRoom }) {
 }
 
 // ==================== LOBBY SCREEN ====================
-function LobbyScreen({ code, players, hostId, myId, onStart }) {
+function LobbyScreen({ code, players, hostId, myId, onStart, onLeaveLobby }) {
   const isHost = myId === hostId;
   const canStart = isHost && players.length >= 2;
 
   return (
     <div className="screen lobby-screen fade-in">
+      <button className="back-btn" onClick={onLeaveLobby}>&rarr; חזרה</button>
       {/* Persistent top bar */}
       <div className="top-bar">
         <span className="top-logo">שועה</span>
@@ -386,7 +387,7 @@ function ExchangeScreen({ gameState, selectedCards, onToggleCard, onExchangePick
 }
 
 // ==================== GAME OVER SCREEN ====================
-function GameOverScreen({ gameState, isHost, onRematch }) {
+function GameOverScreen({ gameState, isHost, onRematch, onLeave }) {
   const { finishOrder } = gameState;
   const rankEmojis = ['👑', '🥈', '🥉', '4️⃣', '5️⃣', '🍑'];
 
@@ -418,6 +419,9 @@ function GameOverScreen({ gameState, isHost, onRematch }) {
         {!isHost && (
           <p className="waiting-text">ממתינים למארח...</p>
         )}
+        <button className="btn-wood btn-secondary" onClick={onLeave}>
+          חזרה לבית
+        </button>
       </div>
 
       <div className="confetti-container" aria-hidden="true">
@@ -434,7 +438,10 @@ function GameOverScreen({ gameState, isHost, onRematch }) {
 }
 
 // ==================== GAME SCREEN ====================
-function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPass, onReset, onBurstClick }) {
+function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPass, onReset, onBurstClick, onLeave }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
   const {
     hand, opponents, pile, isMyTurn, canReset, sevenActive,
     possibleBursts, log, currentPlayerId, mustPlayThreeOfClubs, allPlayers, shooaPlayerId
@@ -481,6 +488,38 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
 
   return (
     <div className="game-screen">
+      {/* Menu dropdown */}
+      <div className="menu-container">
+        <button className="btn-wood btn-small" onClick={() => setMenuOpen(prev => !prev)}>
+          &#9776;
+        </button>
+        {menuOpen && (
+          <div className="menu-dropdown">
+            <button onClick={() => { setMenuOpen(false); setShowLeaveConfirm(true); }}>
+              יציאה מהמשחק
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Leave confirmation modal */}
+      {showLeaveConfirm && (
+        <div className="modal-overlay" onClick={() => setShowLeaveConfirm(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>בטוח שאתה רוצה לעזוב?</h3>
+            <p>הקלפים שלך יזרקו והמשחק ימשיך בלעדיך</p>
+            <div style={{ display: 'flex', gap: 'var(--gap-md)', justifyContent: 'center' }}>
+              <button className="btn-danger" onClick={() => { setShowLeaveConfirm(false); onLeave(); }}>
+                כן, יוצא
+              </button>
+              <button className="btn-secondary" onClick={() => setShowLeaveConfirm(false)}>
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Table area — parchment background with opponents and pile */}
       <div className="table-area">
         {/* Opponents around the table */}
@@ -776,6 +815,24 @@ export default function App() {
 
   const handleRematch = useCallback(() => socket.emit('rematch'), []);
 
+  const handleLeave = useCallback(() => {
+    socket.emit('leave-room');
+    setGameState(null);
+    setRoomCode('');
+    setPlayers([]);
+    setSelectedCards([]);
+    setScreen('home');
+    clearSession();
+  }, []);
+
+  const handleLeaveLobby = useCallback(() => {
+    socket.emit('leave-room');
+    setRoomCode('');
+    setPlayers([]);
+    setScreen('home');
+    clearSession();
+  }, []);
+
   // Joker reset: pile must have singles (not empty, quantity 1) and exactly 1 card selected
   const canJokerReset = gameState?.pile?.topRank != null && gameState.pile.quantity === 1 && selectedCards.length === 1;
 
@@ -812,6 +869,7 @@ export default function App() {
           hostId={hostId}
           myId={myId}
           onStart={handleStartGame}
+          onLeaveLobby={handleLeaveLobby}
         />
       )}
 
@@ -835,6 +893,7 @@ export default function App() {
               onPass={handlePass}
               onReset={handleReset}
               onBurstClick={handleBurstClick}
+              onLeave={handleLeave}
             />
           )}
           {gameState.phase === 'gameOver' && (
@@ -842,6 +901,7 @@ export default function App() {
               gameState={gameState}
               isHost={myId === hostId}
               onRematch={handleRematch}
+              onLeave={handleLeave}
             />
           )}
         </>

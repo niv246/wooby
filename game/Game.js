@@ -119,6 +119,28 @@ class Game {
     if (this.log.length > 50) this.log.shift();
   }
 
+  // ==================== REMOVE PLAYER ====================
+
+  removePlayer(playerId) {
+    const player = this.getPlayer(playerId);
+    if (!player) return;
+
+    // Mark as finished (last place)
+    if (!player.finished) {
+      player.finished = true;
+      player.hand = [];
+    }
+
+    // If it was their turn — advance to next
+    if (this.players[this.currentPlayerIndex] &&
+        this.players[this.currentPlayerIndex].id === playerId) {
+      this._advanceTurn();
+    }
+
+    this._addLog(`${player.name} עזב את המשחק`);
+    this._checkGameOver();
+  }
+
   // ==================== EFFECTIVE PLAY PARSING ====================
 
   _getEffectivePlay(cards, jokerChoice) {
