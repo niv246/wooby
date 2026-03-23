@@ -691,23 +691,21 @@ html, body {
 .opponent-active::after {
   content: '';
   position: absolute;
-  inset: var(--card-overlap);
-  border: 3px solid rgba(46, 204, 113, 0.7);
+  inset: min(-8vw, -30px);
+  border: 3px solid rgba(46, 204, 113, 0.8);
   border-radius: 50%;
-  box-shadow: 0 0 var(--gap-md) rgba(46, 204, 113, 0.4);
+  box-shadow:
+    0 0 min(4vw, 16px) rgba(46, 204, 113, 0.5),
+    0 0 min(8vw, 32px) rgba(46, 204, 113, 0.25),
+    inset 0 0 min(4vw, 16px) rgba(46, 204, 113, 0.1);
   animation: turnPulse 2s ease-in-out infinite;
   pointer-events: none;
   z-index: 0;
 }
 
 @keyframes turnPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-
-.opponent-active .opponent-name {
-  color: #2ecc71;
-  text-shadow: 0 0 min(2vw, 8px) rgba(46, 204, 113, 0.5);
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
 .opponent-finished {
