@@ -492,7 +492,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   transition: all 0.3s;
   z-index: 2;
 }
@@ -508,6 +508,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 5px;
+  z-index: 3;
 }
 
 .opponent-name {
@@ -537,13 +538,31 @@ html, body {
   font-size: 16px;
 }
 
-.opponent-active .opponent-name {
-  color: var(--gold);
-  text-shadow: 0 0 8px var(--gold-glow);
+/* Active turn indicator — green circle */
+.opponent-active {
+  position: absolute;
 }
 
-.opponent-active .opponent-fan .fan-card {
-  box-shadow: 0 0 8px var(--gold-glow);
+.opponent-active::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border: 3px solid rgba(46, 204, 113, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
+  animation: turnPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes turnPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.opponent-active .opponent-name {
+  color: #2ecc71;
+  text-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
 }
 
 .opponent-finished {
@@ -556,48 +575,35 @@ html, body {
 
 /* Fan of face-down cards for opponents */
 .opponent-fan {
+  position: relative;
+  height: 50px;
+  min-width: 60px;
   display: flex;
   justify-content: center;
-  position: relative;
-  height: 48px;
-  min-width: 40px;
 }
 
 .fan-card {
   position: absolute;
-  width: 32px;
-  height: 46px;
+  width: 30px;
+  height: 44px;
   background: linear-gradient(135deg, var(--card-back) 0%, var(--card-back-dark) 100%);
   border: 1.5px solid var(--white);
   border-radius: 4px;
-  transform-origin: center bottom;
-  transform: translateX(calc((var(--i) - var(--total) / 2 + 0.5) * 12px)) rotate(calc((var(--i) - var(--total) / 2 + 0.5) * 5deg));
+  transform-origin: center 120%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  left: 50%;
+  margin-left: -15px;
 }
 
 .fan-card::after {
   content: 'וובי';
   font-family: var(--font-display);
-  font-size: 7px;
+  font-size: 6px;
   color: rgba(255,255,255,0.35);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-/* Left/right opponents — vertical fan */
-.opponent-left .opponent-fan,
-.opponent-right .opponent-fan {
-  flex-direction: column;
-  height: auto;
-  width: 48px;
-  min-height: 40px;
-}
-
-.opponent-left .fan-card,
-.opponent-right .fan-card {
-  transform: translateY(calc((var(--i) - var(--total) / 2 + 0.5) * 10px)) rotate(calc((var(--i) - var(--total) / 2 + 0.5) * 3deg));
 }
 
 /* ==================== PILE AREA — Center of table ==================== */
@@ -625,20 +631,23 @@ html, body {
   text-align: center;
 }
 
-.pile-cards {
-  display: flex;
-  justify-content: center;
+.pile-stack {
   position: relative;
+  width: 70px;
+  height: 95px;
 }
 
-.pile-cards .card-small {
-  margin-left: -20px;
-  transform: rotate(calc(var(--pile-i, 0) * 8deg - 8deg));
+.pile-card-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--pile-z, 0);
+  transform: rotate(var(--pile-rot, 0deg)) translate(var(--pile-x, 0px), var(--pile-y, 0px));
+  transition: transform 0.2s ease-out;
+}
+
+.pile-card-wrapper .card-small {
   box-shadow: 1px 2px 6px rgba(0,0,0,0.25);
-}
-
-.pile-cards .card-small:first-child {
-  margin-left: 0;
 }
 
 /* ==================== SEVEN ARROW INDICATOR ==================== */
@@ -659,70 +668,84 @@ html, body {
   to { transform: translateX(-50%) scale(1.2); }
 }
 
-/* ==================== STATUS BAR ==================== */
-.status-bar {
+/* ==================== TURN STATUS — Dark pill above hand ==================== */
+.turn-status {
   position: absolute;
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
+  font-family: var(--font-display);
   font-size: 15px;
-  font-weight: 700;
-  padding: 4px 16px;
-  color: var(--text-dim);
+  font-weight: 400;
+  padding: 6px 20px;
+  color: rgba(255,255,255,0.9);
   z-index: 4;
   white-space: nowrap;
   border-radius: 20px;
-  background: rgba(255,255,255,0.3);
+  background: rgba(30, 30, 30, 0.75);
 }
 
-.status-myturn {
-  color: var(--wood-mid);
-  background: rgba(212, 168, 70, 0.25);
-  animation: glow-status 1.5s infinite alternate;
+.turn-status.my-turn {
+  background: rgba(212, 168, 70, 0.85);
+  color: #1a1a1a;
+  animation: turnGlow 1.5s ease-in-out infinite alternate;
 }
 
-@keyframes glow-status {
+@keyframes turnGlow {
   from { box-shadow: 0 0 4px var(--gold-glow); }
-  to { box-shadow: 0 0 12px var(--gold-glow); }
+  to { box-shadow: 0 0 16px var(--gold-glow); }
 }
 
-.status-seven {
-  color: var(--red);
-  background: rgba(204, 0, 0, 0.1);
+.turn-status.seven-mode {
+  background: rgba(204, 0, 0, 0.8);
+  color: #ffffff;
 }
 
-/* ==================== GAME LOG — floating messages ==================== */
+/* ==================== GAME LOG — floating pill messages ==================== */
 .game-log {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 50px);
+  transform: translate(-50%, 55px);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   z-index: 5;
   pointer-events: none;
-  width: 80%;
-  max-width: 280px;
+  width: 85%;
+  max-width: 300px;
+  align-items: center;
 }
 
 .log-msg {
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text);
-  background: rgba(255,255,255,0.5);
-  padding: 3px 10px;
-  border-radius: 12px;
+  color: #3a2a1a;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 14px;
+  border-radius: 16px;
   opacity: 0.5;
   animation: logSlideIn 300ms ease-out;
 }
 
 .log-msg-latest {
-  opacity: 0.9;
+  opacity: 0.95;
   font-size: 13px;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.log-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.log-text {
+  flex: 1;
 }
 
 @keyframes logSlideIn {

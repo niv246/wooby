@@ -409,8 +409,8 @@ class Game {
       return { success: false, error: 'אי אפשר רביעייה של 2' };
     }
 
-    // Count real cards of this rank on pile TOP PLAY (jokers don't count)
-    const pileCount = this.pile.topCards.filter(
+    // Count real cards of this rank on pile (jokers don't count)
+    const pileCount = this.pile.allCards.filter(
       c => c.rank === rank && c.rank !== 'joker'
     ).length;
 
@@ -459,10 +459,9 @@ class Game {
       }
     }
 
-    // Count real cards per rank on pile TOP PLAY ONLY (no jokers)
-    // Only the most recent play counts for completion bursts
+    // Count real cards per rank across ALL pile cards (no jokers)
     const pileCounts = {};
-    for (const c of this.pile.topCards) {
+    for (const c of this.pile.allCards) {
       if (c.rank !== 'joker' && c.rank !== '2') {
         pileCounts[c.rank] = (pileCounts[c.rank] || 0) + 1;
       }
@@ -749,6 +748,7 @@ class Game {
       allPlayers,
       pile: {
         topCards: [...this.pile.topCards],
+        allCards: this.pile.allCards.slice(-12), // last 12 individual cards (covers 4 plays of triples)
         topRank: this.pile.topRank,
         quantity: this.pile.quantity,
         isEmpty: this.pile.topRank === null,

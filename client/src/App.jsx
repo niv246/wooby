@@ -216,32 +216,36 @@ function BurstModal({ bursts, onBurst, onCancel }) {
 function Opponent({ player, position }) {
   const isActive = player.isCurrentTurn;
   const isFinished = player.finished;
+  const cardCount = Math.min(player.cardCount, 15);
+  const angleStep = Math.max(4, Math.min(7, 60 / (cardCount || 1)));
+  const totalAngle = (cardCount - 1) * angleStep;
+  const startAngle = -totalAngle / 2;
 
   return (
     <div className={`opponent opponent-${position} ${isActive ? 'opponent-active' : ''} ${isFinished ? 'opponent-finished' : ''} ${player.disconnected ? 'opponent-dc' : ''}`}>
+      {!isFinished && cardCount > 0 && (
+        <div className="opponent-fan">
+          {Array.from({ length: cardCount }).map((_, i) => (
+            <div
+              key={i}
+              className="fan-card"
+              style={{
+                transform: `rotate(${startAngle + i * angleStep}deg)`,
+                zIndex: i,
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="opponent-info">
         <span className="opponent-name">{player.name}</span>
-        <span className="score-badge">0</span>
+        <span className="score-badge">{player.cardCount}</span>
         {isFinished && (
           <span className="finish-badge">
             {player.finishRank === 1 ? '👑' : player.finishRank === 2 ? '🥈' : player.finishRank === 3 ? '🥉' : `#${player.finishRank}`}
           </span>
         )}
       </div>
-      {!isFinished && (
-        <div className="opponent-fan">
-          {Array.from({ length: Math.min(player.cardCount, 15) }).map((_, i) => (
-            <div
-              key={i}
-              className="fan-card"
-              style={{
-                '--i': i,
-                '--total': Math.min(player.cardCount, 15),
-              }}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -252,7 +256,18 @@ function GameLog({ log }) {
     <div className="game-log">
       {log.slice(-3).map((entry, i) => (
         <div key={`${entry.time}-${i}`} className={`log-msg ${i === log.slice(-3).length - 1 ? 'log-msg-latest' : ''}`}>
-          {entry.msg}
+          <span className="log-icon">
+            {entry.msg.includes('שורף') ? '🔥' :
+             entry.msg.includes('רביעייה') ? '💥' :
+             entry.msg.includes('היפוך') ? '🔄' :
+             entry.msg.includes('עצור') ? '⛔' :
+             entry.msg.includes('נדלג') ? '⛔' :
+             entry.msg.includes('עבר') ? '👋' :
+             entry.msg.includes('איפס') ? '♻️' :
+             entry.msg.includes('סיים') ? '🏆' :
+             '🃏'}
+          </span>
+          <span className="log-text">{entry.msg}</span>
         </div>
       ))}
     </div>
@@ -416,7 +431,7 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
     const rank = realSelected[0].rank;
     if (!realSelected.every(c => c.rank === rank)) return null;
     // Count matching rank on pile top
-    const pileMatch = (pile.topCards || []).filter(c => c.rank === rank && c.rank !== 'joker').length;
+    const pileMatch = (pile.allCards || pile.topCards || []).filter(c => c.rank === rank && c.rank !== 'joker').length;
     // Hand selected + pile = 4?
     if (realSelected.length + pileMatch === 4) {
       return { rank, cardIds: selectedCards };
@@ -440,9 +455,20 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
               <span>חבילה ריקה</span>
             </div>
           ) : (
-            <div className="pile-cards">
-              {pile.topCards.map((card, i) => (
-                <Card key={card.id || i} card={card} small style={{ '--pile-i': i }} />
+            <div className="pile-stack">
+              {(pile.allCards || pile.topCards).slice(-8).map((card, i, arr) => (
+                <div
+                  key={card.id || `pile-${i}`}
+                  className="pile-card-wrapper"
+                  style={{
+                    '--pile-z': i,
+                    '--pile-rot': `${((i * 17 + 3) % 17) - 8}deg`,
+                    '--pile-x': `${((i * 7 + 2) % 7) - 3}px`,
+                    '--pile-y': `${((i * 5 + 1) % 5) - 2}px`,
+                  }}
+                >
+                  <Card card={card} small />
+                </div>
               ))}
             </div>
           )}
@@ -452,7 +478,7 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
         {sevenActive && <div className="seven-arrow">⬇</div>}
 
         {/* Status */}
-        <div className={`status-bar ${isMyTurn ? 'status-myturn' : ''} ${sevenActive ? 'status-seven' : ''}`}>
+        <div className={`turn-status ${isMyTurn ? 'my-turn' : ''} ${sevenActive ? 'seven-mode' : ''}`}>
           {statusText}
         </div>
 
