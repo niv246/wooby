@@ -466,12 +466,19 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
           <Opponent key={opp.id} player={opp} position={positions[i] || 'top'} isShooa={opp.id === shooaPlayerId} />
         ))}
 
-        {/* Pile in center */}
+        {/* Pile + Deck in center */}
         <div className="pile-area">
+          {/* Closed deck — always visible */}
+          <div className="deck-stack">
+            <div className="deck-card" />
+            <div className="deck-card" />
+            <div className="deck-card" />
+            <span className="deck-label">שועה</span>
+          </div>
+
+          {/* Played cards pile */}
           {pile.isEmpty ? (
-            <div className="pile-empty">
-              <span>חבילה ריקה</span>
-            </div>
+            <div className="pile-empty-shadow" />
           ) : (
             <div className="pile-stack">
               {(pile.allCards || pile.topCards).slice(-8).map((card, i, arr) => (
