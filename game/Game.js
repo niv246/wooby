@@ -192,6 +192,18 @@ class Game {
     };
   }
 
+  // ==================== EFFECTIVE RANK HELPER ====================
+
+  _getEffectiveRank(cards, jokerChoice) {
+    const realCards = cards.filter(c => c.rank !== 'joker');
+    if (realCards.length > 0) return realCards[0].rank;
+    // All jokers — use mirror choice
+    if (jokerChoice?.mode === 'mirror' || jokerChoice?.type === 'mirror') {
+      return jokerChoice.value || jokerChoice.rank || null;
+    }
+    return null;
+  }
+
   // ==================== PLAY CARDS ====================
 
   playCards(playerId, cardIds, jokerChoice) {
@@ -272,8 +284,9 @@ class Game {
       }
     }
 
-    // Check for stop (same value as pile top)
-    const isStop = this.pile.topRank !== null && effective.rank === this.pile.topRank;
+    // Check for stop (same value as pile top) — use effective rank to cover joker mirrors
+    const effectiveRank = this._getEffectiveRank(cards, jokerChoice) || effective.rank;
+    const isStop = this.pile.topRank !== null && effectiveRank === this.pile.topRank;
 
     // Execute the play
     this._removeCardsFromHand(currentPlayer, cardIds);
@@ -494,7 +507,8 @@ class Game {
         // Check if skipped player can burst (they'd do it themselves)
         const bursts = this.getPossibleBursts(skippedPlayer.id);
         if (bursts.length === 0) {
-          this._addLog(`${skippedPlayer.name} נדלג! ⛔`);
+          // Skip this player — advance to the one after them
+          this._addLog(`⛔ ${skippedPlayer.name} נדלג!`);
           nextIdx = this._nextActiveIndex(nextIdx);
         }
         // If they CAN burst, they aren't skipped — they'll burst on their turn

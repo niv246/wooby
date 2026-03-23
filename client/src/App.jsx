@@ -675,7 +675,9 @@ export default function App() {
 
     socket.on('game-state', (state) => {
       setGameState(state);
-      setSelectedCards([]);
+      setSelectedCards(prev =>
+        prev.filter(id => state.hand.some(c => c.id === id))
+      );
       setIsReconnecting(false);
       if (state.phase === 'playing' || state.phase === 'exchange' || state.phase === 'gameOver') {
         setScreen('game');
@@ -758,7 +760,6 @@ export default function App() {
   const handleBurstClick = useCallback(() => {
     if (!gameState || selectedCards.length === 0) return;
     socket.emit('burst', { cardIds: selectedCards });
-    setSelectedCards([]);
   }, [gameState, selectedCards]);
 
   const handleBurst = useCallback((cardIds) => {
@@ -772,7 +773,6 @@ export default function App() {
 
   const handleExchangeGive = useCallback((cardIds) => {
     socket.emit('exchange-give', { cardIds });
-    setSelectedCards([]);
   }, []);
 
   const handleRematch = useCallback(() => socket.emit('rematch'), []);

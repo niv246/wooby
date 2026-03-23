@@ -609,9 +609,12 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: min(3vw, 12px);
+  padding-top: env(safe-area-inset-top, min(3vw, 12px));
+  overflow: hidden;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .table-area {
@@ -634,8 +637,8 @@ html, body {
 
 /* Position classes — pushed to/off edges like Yaniv */
 .opponent-top { top: min(1vw, 4px); left: 50%; transform: translateX(-50%); }
-.opponent-left { left: min(-5vw, -20px); top: 35%; transform: translateY(-50%); }
-.opponent-right { right: min(-5vw, -20px); top: 35%; transform: translateY(-50%); }
+.opponent-left { left: min(2vw, 8px); top: 35%; transform: translateY(-50%); }
+.opponent-right { right: min(2vw, 8px); top: 35%; transform: translateY(-50%); }
 .opponent-top-left { top: min(1vw, 4px); left: 6%; }
 .opponent-top-right { top: min(1vw, 4px); right: 6%; }
 
@@ -654,6 +657,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
   text-shadow: 0 min(0.3vw, 1px) min(0.5vw, 2px) rgba(255,255,255,0.3);
 }
 
@@ -666,13 +670,12 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--badge-size);
-  height: var(--badge-size);
-  background: var(--cyan);
+  background: rgba(0, 0, 0, 0.5);
   color: var(--white);
-  font-size: var(--badge-font);
-  font-weight: 800;
-  border-radius: 50%;
+  padding: min(0.5vw, 2px) min(1.5vw, 6px);
+  border-radius: min(2vw, 8px);
+  font-size: var(--font-info);
+  font-weight: 700;
   box-shadow: var(--shadow-btn);
 }
 
