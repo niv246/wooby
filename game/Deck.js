@@ -6,14 +6,13 @@ const SUIT_SYMBOLS = { clubs: '♣', diamonds: '♦', hearts: '♥', spades: '�
 
 function createDeck() {
   const cards = [];
-  let id = 0;
   for (const suit of SUITS) {
     for (const rank of RANKS) {
-      cards.push({ id: String(id++), suit, rank });
+      cards.push({ id: `${suit}-${rank}`, suit, rank });
     }
   }
-  cards.push({ id: String(id++), suit: null, rank: 'joker' });
-  cards.push({ id: String(id++), suit: null, rank: 'joker' });
+  cards.push({ id: 'joker-1', suit: null, rank: 'joker' });
+  cards.push({ id: 'joker-2', suit: null, rank: 'joker' });
   return cards;
 }
 
@@ -40,11 +39,12 @@ function rankValue(rank) {
 
 function sortHand(hand) {
   return [...hand].sort((a, b) => {
+    // Order: 3→A, then 2, then joker at end
     if (a.rank === 'joker' && b.rank === 'joker') return 0;
     if (a.rank === 'joker') return 1;
-    if (b.rank === 'joker') return 1;
+    if (b.rank === 'joker') return -1;
     if (a.rank === '2' && b.rank === '2') return 0;
-    if (a.rank === '2') return -1;
+    if (a.rank === '2') return 1;   // 2 goes after A
     if (b.rank === '2') return -1;
     return rankValue(a.rank) - rankValue(b.rank);
   });

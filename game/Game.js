@@ -214,16 +214,9 @@ class Game {
     const effective = this._getEffectivePlay(cards, jokerChoice);
     if (effective.type === 'invalid') return { success: false, error: effective.error };
 
-    // First turn: must include 3♣
+    // First turn: 3♣ holder starts but can play ANY card
     if (this.mustPlayThreeOfClubs) {
-      if (!cards.some(c => c.rank === '3' && c.suit === 'clubs')) {
-        return { success: false, error: 'צריך לשים 3♣ בתור הראשון' };
-      }
-      // All real cards must be rank 3
-      const realCards = cards.filter(c => c.rank !== 'joker');
-      if (!realCards.every(c => c.rank === '3')) {
-        return { success: false, error: 'התור הראשון חייב להיות שלשות' };
-      }
+      this.mustPlayThreeOfClubs = false;
     }
 
     // === RESET PLAY (2 or joker reset) ===

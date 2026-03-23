@@ -83,6 +83,7 @@ io.on('connection', (socket) => {
       gameNumber: 0,
       previousFinishOrder: null,
       seatingOrder: null,
+      createdAt: Date.now(),
     };
 
     rooms.set(code, room);
@@ -382,7 +383,17 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
+
+// Clean up rooms older than 3 hours
+setInterval(() => {
+  const now = Date.now();
+  for (const [code, room] of rooms) {
+    if (now - room.createdAt > 3 * 60 * 60 * 1000) {
+      rooms.delete(code);
+    }
+  }
+}, 60 * 1000);
 server.listen(PORT, () => {
   console.log(`🃏 Wooby server running on port ${PORT}`);
 });
