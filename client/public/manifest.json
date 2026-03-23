@@ -1,0 +1,26 @@
+{
+  "name": "שועה - משחק הקלפים",
+  "short_name": "שועה",
+  "description": "משחק הקלפים של השועה שלך!",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#c8b99a",
+  "theme_color": "#c8b99a",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
