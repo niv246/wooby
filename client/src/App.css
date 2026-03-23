@@ -419,27 +419,17 @@ html, body {
   justify-content: center;
 }
 
-.logo {
-  font-family: var(--font-display);
-  font-size: min(20vw, 80px);
-  background: linear-gradient(180deg, #f0c040 0%, #e88020 50%, #d04020 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 min(0.8vw, 3px) 0 #8a4010) drop-shadow(0 min(1.5vw, 6px) min(3vw, 12px) rgba(0,0,0,0.3));
-  animation: logo-pulse 2.5s infinite alternate ease-in-out;
+.home-logo {
+  width: min(65vw, 280px);
+  height: auto;
+  margin-bottom: var(--gap-md);
+  filter: drop-shadow(0 min(1vw, 4px) min(3vw, 12px) rgba(0,0,0,0.3));
+  animation: logoPulse 3s ease-in-out infinite;
 }
 
-@keyframes logo-pulse {
-  from { filter: drop-shadow(0 min(0.8vw, 3px) 0 #8a4010) drop-shadow(0 min(1.5vw, 6px) min(3vw, 12px) rgba(0,0,0,0.3)); }
-  to { filter: drop-shadow(0 min(0.8vw, 3px) 0 #8a4010) drop-shadow(0 min(1.5vw, 6px) min(5vw, 20px) rgba(208, 64, 32, 0.4)); }
-}
-
-.subtitle {
-  font-family: var(--font-display);
-  font-size: var(--home-subtitle);
-  color: var(--text-light);
-  margin-top: var(--gap-sm);
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
 }
 
 .home-bottom {

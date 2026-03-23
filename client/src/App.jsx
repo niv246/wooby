@@ -30,8 +30,7 @@ function HomeScreen({ onCreateRoom, onJoinRoom }) {
     <div className="screen home-screen fade-in">
       {/* Logo top */}
       <div className="home-top">
-        <h1 className="logo">שועה</h1>
-        <p className="subtitle">משחק הקלפים של ה"שועה" שלך! 🍑</p>
+        <img src="/logo-clean.png" alt="שועה" className="home-logo" />
       </div>
 
       {/* Buttons at bottom */}
