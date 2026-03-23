@@ -213,7 +213,7 @@ function BurstModal({ bursts, onBurst, onCancel }) {
 }
 
 // ==================== OPPONENT COMPONENT ====================
-function Opponent({ player, position }) {
+function Opponent({ player, position, isShooa }) {
   const isActive = player.isCurrentTurn;
   const isFinished = player.finished;
   const cardCount = Math.min(player.cardCount, 15);
@@ -238,7 +238,10 @@ function Opponent({ player, position }) {
         </div>
       )}
       <div className="opponent-info">
-        <span className="opponent-name">{player.name}</span>
+        <span className="opponent-name">
+          {isShooa && <span className="shooa-marker">💩</span>}
+          {player.name}
+        </span>
         <span className="score-badge">{player.cardCount}</span>
         {isFinished && (
           <span className="finish-badge">
@@ -275,14 +278,25 @@ function GameLog({ log }) {
 }
 
 // ==================== EXCHANGE SCREEN ====================
+function ExchangeRankBadge({ myRank }) {
+  if (!myRank) return null;
+  return (
+    <div className={`exchange-rank-badge rank-badge-${myRank.emoji === '👑' ? 'king' : myRank.emoji === '🥈' ? 'vice' : myRank.emoji === '💩' ? 'shooa' : 'vice-shooa'}`}>
+      <span className="rank-emoji">{myRank.emoji}</span>
+      <span className="rank-label">{myRank.label}</span>
+    </div>
+  );
+}
+
 function ExchangeScreen({ gameState, selectedCards, onToggleCard, onExchangePick, onExchangeGive }) {
-  const { exchange, hand } = gameState;
+  const { exchange, hand, myRank } = gameState;
   if (!exchange) return null;
 
   if (exchange.role === 'taker' && exchange.action === 'pick') {
     return (
       <div className="screen exchange-screen fade-in">
         <div className="exchange-panel">
+          <ExchangeRankBadge myRank={myRank} />
           <h2 className="exchange-title">🔄 החלפת שועה</h2>
           <p className="exchange-desc">
             בחר {exchange.remaining} ערכ{exchange.remaining > 1 ? 'ים' : ''} מהיד של {exchange.partnerName}
@@ -308,6 +322,7 @@ function ExchangeScreen({ gameState, selectedCards, onToggleCard, onExchangePick
     return (
       <div className="screen exchange-screen fade-in">
         <div className="exchange-panel">
+          <ExchangeRankBadge myRank={myRank} />
           <h2 className="exchange-title">🔄 החלפת שועה</h2>
           <p className="exchange-desc">בחר {exchange.count} קלפים לתת ל{exchange.partnerName}</p>
           <div className="exchange-hand">
@@ -335,6 +350,7 @@ function ExchangeScreen({ gameState, selectedCards, onToggleCard, onExchangePick
   return (
     <div className="screen exchange-screen fade-in">
       <div className="exchange-panel">
+        <ExchangeRankBadge myRank={myRank} />
         <h2 className="exchange-title">🔄 החלפת שועה</h2>
         <p className="waiting-text">ממתינים להחלפה...</p>
         <div className="exchange-hand-preview">
@@ -399,7 +415,7 @@ function GameOverScreen({ gameState, isHost, onRematch }) {
 function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPass, onReset, onBurstClick }) {
   const {
     hand, opponents, pile, isMyTurn, canReset, sevenActive,
-    possibleBursts, log, currentPlayerId, mustPlayThreeOfClubs, allPlayers
+    possibleBursts, log, currentPlayerId, mustPlayThreeOfClubs, allPlayers, shooaPlayerId
   } = gameState;
 
   const currentPlayerInfo = allPlayers?.find(p => p.id === currentPlayerId);
@@ -413,9 +429,11 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
   const selectedCount = selectedCards.length;
   const pileQuantity = pile.quantity;
   const isResetCard = selectedCount === 1 && hand.find(c => c.id === selectedCards[0])?.rank === '2';
-  const isJokerReset = selectedCount === 1 && hand.find(c => c.id === selectedCards[0])?.rank === 'joker';
+  const isSingleJoker = selectedCount === 1 && hand.find(c => c.id === selectedCards[0])?.rank === 'joker';
+  // Single joker bypasses quantity only on empty pile (mirror to open) or singles (mirror/reset)
+  const jokerBypassQuantity = isSingleJoker && (pile.isEmpty || pileQuantity === 1);
   const quantityMismatch = !pile.isEmpty && pileQuantity > 0 && selectedCount > 0
-    && selectedCount !== pileQuantity && !isResetCard && !isJokerReset;
+    && selectedCount !== pileQuantity && !isResetCard && !jokerBypassQuantity;
   const quantityHint = quantityMismatch
     ? `צריך ${pileQuantity === 1 ? 'בודד' : pileQuantity === 2 ? 'זוג' : 'שלישייה'}`
     : null;
@@ -445,7 +463,7 @@ function GameScreenInner({ gameState, selectedCards, onToggleCard, onPlay, onPas
       <div className="table-area">
         {/* Opponents around the table */}
         {opponents.map((opp, i) => (
-          <Opponent key={opp.id} player={opp} position={positions[i] || 'top'} />
+          <Opponent key={opp.id} player={opp} position={positions[i] || 'top'} isShooa={opp.id === shooaPlayerId} />
         ))}
 
         {/* Pile in center */}
@@ -702,7 +720,8 @@ export default function App() {
 
   const handleRematch = useCallback(() => socket.emit('rematch'), []);
 
-  const canJokerReset = gameState?.pile && !gameState.pile.isEmpty && gameState.pile.quantity === 1;
+  // Joker reset: pile must have singles (not empty, quantity 1) and exactly 1 card selected
+  const canJokerReset = gameState?.pile?.topRank != null && gameState.pile.quantity === 1 && selectedCards.length === 1;
 
   return (
     <div className="app">

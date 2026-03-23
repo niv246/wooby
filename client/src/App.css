@@ -515,10 +515,15 @@ html, body {
   font-size: 13px;
   font-weight: 700;
   color: var(--text);
-  max-width: 70px;
+  max-width: 80px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.shooa-marker {
+  font-size: 12px;
+  margin-inline-end: 2px;
 }
 
 .score-badge {
@@ -1046,6 +1051,58 @@ html, body {
   margin: 16px;
   position: relative;
   color: rgba(255,255,255,0.9);
+}
+
+.exchange-rank-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 24px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+}
+.exchange-rank-badge .rank-emoji {
+  font-size: 42px;
+  line-height: 1;
+}
+.exchange-rank-badge .rank-label {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.rank-badge-king {
+  border-color: rgba(255, 215, 0, 0.5);
+  background: rgba(255, 215, 0, 0.12);
+}
+.rank-badge-king .rank-label { color: #ffd700; }
+
+.rank-badge-vice {
+  border-color: rgba(192, 192, 192, 0.4);
+  background: rgba(192, 192, 192, 0.1);
+}
+.rank-badge-vice .rank-label { color: #c0c0c0; }
+
+.rank-badge-shooa {
+  border-color: rgba(139, 90, 43, 0.5);
+  background: rgba(139, 90, 43, 0.15);
+  animation: shooaShake 0.5s ease-in-out;
+}
+.rank-badge-shooa .rank-label { color: #cd853f; }
+
+.rank-badge-vice-shooa {
+  border-color: rgba(160, 120, 60, 0.4);
+  background: rgba(160, 120, 60, 0.1);
+}
+.rank-badge-vice-shooa .rank-label { color: #b8956a; }
+
+@keyframes shooaShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px) rotate(-2deg); }
+  40% { transform: translateX(4px) rotate(2deg); }
+  60% { transform: translateX(-3px) rotate(-1deg); }
+  80% { transform: translateX(3px) rotate(1deg); }
 }
 
 .exchange-title {

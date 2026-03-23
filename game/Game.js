@@ -741,6 +741,19 @@ class Game {
       }
     }
 
+    // Player rank from previous game (for exchange display + sho'a marker)
+    let myRank = null;
+    let shooaPlayerId = null;
+    const fo = this.previousFinishOrder;
+    if (fo && fo.length >= 2) {
+      shooaPlayerId = fo[fo.length - 1].id;
+      const myFoIdx = fo.findIndex(p => p.id === playerId);
+      if (myFoIdx === 0) myRank = { label: 'מלך', emoji: '👑' };
+      else if (myFoIdx === 1 && fo.length >= 4) myRank = { label: 'סגן מלך', emoji: '🥈' };
+      else if (myFoIdx === fo.length - 1) myRank = { label: 'שועה', emoji: '💩' };
+      else if (myFoIdx === fo.length - 2 && fo.length >= 4) myRank = { label: 'סגן שועה', emoji: '🤢' };
+    }
+
     return {
       phase: this.phase,
       hand: player ? [...player.hand] : [],
@@ -764,6 +777,8 @@ class Game {
       gameNumber: this.gameNumber,
       mustPlayThreeOfClubs: this.mustPlayThreeOfClubs && isMyTurn,
       myId: playerId,
+      myRank,
+      shooaPlayerId,
     };
   }
 }
