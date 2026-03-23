@@ -25,9 +25,51 @@ function getOpponentPositions(count) {
 function HomeScreen({ onCreateRoom, onJoinRoom }) {
   const [name, setName] = useState('');
   const [joinCode, setJoinCode] = useState('');
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+  }, []);
 
   return (
     <div className="screen home-screen fade-in">
+      {!isInstalled && (
+        <button className="install-btn" onClick={() => setShowInstallGuide(true)}>
+          📲
+        </button>
+      )}
+      {showInstallGuide && (
+        <div className="modal-overlay" onClick={() => setShowInstallGuide(false)}>
+          <div className="install-modal" onClick={e => e.stopPropagation()}>
+            <h3>התקן את שועה 📲</h3>
+            <div className="install-steps">
+              <div className="install-step">
+                <span className="step-num">1</span>
+                <span>לחץ על כפתור השיתוף</span>
+                <span className="step-icon">⬆️</span>
+              </div>
+              <div className="install-step">
+                <span className="step-num">2</span>
+                <span>גלול למטה ולחץ</span>
+                <span className="step-icon">➕🏠</span>
+              </div>
+              <div className="install-step">
+                <span className="step-num">3</span>
+                <span>לחץ "הוסף"</span>
+                <span className="step-icon">✅</span>
+              </div>
+            </div>
+            <div className="install-arrow">⬇</div>
+            <p className="install-note">האפליקציה תופיע במסך הבית בלי דפדפן!</p>
+            <button className="btn-secondary" onClick={() => setShowInstallGuide(false)}>
+              הבנתי!
+            </button>
+          </div>
+        </div>
+      )}
       {/* Logo top */}
       <div className="home-top">
         <img src="/logo-clean.png" alt="שועה" className="home-logo" />

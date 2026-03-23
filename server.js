@@ -408,27 +408,45 @@ io.on('connection', (socket) => {
       broadcastLobby(currentRoom);
     }
 
-    // Set 5-minute timeout to remove player
+    // Set 30-second timeout to remove player
     const timerKey = `${currentRoom}_${playerId}`;
+    const roomCodeCopy = currentRoom;
+    const playerIdCopy = playerId;
     disconnectTimers.set(timerKey, setTimeout(() => {
-      const r = rooms.get(currentRoom);
+      const r = rooms.get(roomCodeCopy);
       if (!r) return;
-      // Remove player
-      r.players = r.players.filter(p => p.id !== playerId);
       disconnectTimers.delete(timerKey);
 
+      // Remove player from game (discard cards, advance turn)
+      if (r.game && r.game.phase !== 'gameOver') {
+        r.game.removePlayer(playerIdCopy);
+      }
+
+      // Remove player from room
+      r.players = r.players.filter(p => p.id !== playerIdCopy);
+
       if (r.players.length === 0) {
-        rooms.delete(currentRoom);
+        rooms.delete(roomCodeCopy);
       } else {
         // If host left, assign new host
-        if (r.hostId === playerId) {
+        if (r.hostId === playerIdCopy) {
           const newHost = r.players.find(p => p.connected);
           if (newHost) r.hostId = newHost.id;
         }
+
+        // If fewer than 2 players in an active game — end it
+        if (r.game && r.game.phase === 'playing' && r.players.length < 2) {
+          r.game.phase = 'gameOver';
+          const remaining = r.players[0];
+          if (remaining) {
+            r.game._addLog(`${remaining.name} ניצח! (כולם עזבו)`);
+          }
+        }
+
         if (r.game) {
-          broadcastGameState(currentRoom);
+          broadcastGameState(roomCodeCopy);
         } else {
-          broadcastLobby(currentRoom);
+          broadcastLobby(roomCodeCopy);
         }
       }
     }, 30 * 1000)); // 30 seconds

@@ -1751,3 +1751,91 @@ html, body {
     padding-bottom: calc(var(--gap-sm) + env(safe-area-inset-bottom));
   }
 }
+
+/* ==================== PWA INSTALL GUIDE ==================== */
+.install-btn {
+  position: absolute;
+  top: min(3vw, 12px);
+  right: min(3vw, 12px);
+  width: min(11vw, 44px);
+  height: min(11vw, 44px);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  font-size: min(6vw, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.install-modal {
+  background: rgba(30,30,30,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: min(5vw, 20px);
+  padding: min(6vw, 24px);
+  width: min(85vw, 320px);
+  text-align: center;
+  color: white;
+}
+
+.install-modal h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: min(6vw, 24px);
+  margin-bottom: min(4vw, 16px);
+  color: #d4a846;
+}
+
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: min(3vw, 12px);
+  margin-bottom: min(4vw, 16px);
+}
+
+.install-step {
+  display: flex;
+  align-items: center;
+  gap: min(3vw, 12px);
+  background: rgba(255,255,255,0.1);
+  padding: min(3vw, 12px);
+  border-radius: min(3vw, 12px);
+  font-size: min(4vw, 16px);
+}
+
+.step-num {
+  width: min(7vw, 28px);
+  height: min(7vw, 28px);
+  background: #d4a846;
+  color: #1a1a1a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: min(3.5vw, 14px);
+  flex-shrink: 0;
+}
+
+.step-icon {
+  margin-right: auto;
+  font-size: min(5vw, 20px);
+}
+
+.install-arrow {
+  font-size: min(8vw, 32px);
+  animation: bounceDown 1s infinite;
+  margin-bottom: min(2vw, 8px);
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(min(2vw, 8px)); }
+}
+
+.install-note {
+  font-size: min(3.5vw, 14px);
+  color: rgba(255,255,255,0.7);
+  margin-bottom: min(4vw, 16px);
+}
