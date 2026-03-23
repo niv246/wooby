@@ -738,6 +738,7 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isReconnecting, setIsReconnecting] = useState(false);
   const errorTimer = useRef(null);
+  const reconnectTimer = useRef(null);
 
   const [player, setPlayer] = useState(getPlayer());
   const [nameInput, setNameInput] = useState('');
@@ -747,18 +748,38 @@ export default function App() {
   const [cachedSessions, setCachedSessions] = useState(() => getSessions());
   const [actionPending, setActionPending] = useState(false);
 
+  // On fresh load, always start at home — no room memory.
+  // Session reconnection is only handled by socket.js on socket reconnects
+  // (i.e., when the socket drops mid-session and reconnects, NOT on browser restart).
   useEffect(() => {
-    const session = getSession();
-    if (session) {
-      setIsReconnecting(true);
-      socket.emit('join-room', {
-        code: session.code,
-        name: session.name,
-        playerId: session.id,
-      });
-      setTimeout(() => setIsReconnecting(false), 3000);
-    }
+    // Clear any stale session from previous browser session
+    clearSession();
   }, []);
+
+  // Safety net: if reconnecting takes more than 5 seconds, give up and go home
+  useEffect(() => {
+    if (isReconnecting) {
+      reconnectTimer.current = setTimeout(() => {
+        setIsReconnecting(false);
+        setScreen('home');
+        setRoomCode('');
+        setPlayers([]);
+        setGameState(null);
+        clearSession();
+      }, 5000);
+    } else {
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
+    }
+    return () => {
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
+    };
+  }, [isReconnecting]);
 
   useEffect(() => {
     socket.on('room-created', (data) => {
@@ -810,12 +831,21 @@ export default function App() {
       setActionPending(false);
       if (errorTimer.current) clearTimeout(errorTimer.current);
       errorTimer.current = setTimeout(() => setErrorMsg(''), 3000);
-      if (msg === 'חדר לא נמצא') clearSession();
+      // If room doesn't exist anymore, go back to home and clean up
+      if (msg === 'חדר לא נמצא' || msg === 'החדר לא קיים יותר') {
+        clearSession();
+        setScreen('home');
+        setRoomCode('');
+        setPlayers([]);
+        setGameState(null);
+      }
     });
 
-    socket.on('disconnect', () => setIsReconnecting(true));
+    socket.on('disconnect', () => {
+      setIsReconnecting(true);
+    });
     socket.on('connect', () => {
-      if (screen !== 'home') setIsReconnecting(false);
+      // isReconnecting will be cleared by room-joined / game-state / error-msg handlers
     });
 
     return () => {
@@ -879,10 +909,22 @@ export default function App() {
   }, [gameState?.phase]);
 
   const handleCreateRoom = useCallback((name) => {
+    // Clean up any old room state
+    setRoomCode('');
+    setPlayers([]);
+    setSelectedCards([]);
+    setGameState(null);
+    clearSession();
     socket.emit('create-room', { name });
   }, []);
 
   const handleJoinRoom = useCallback((name, code) => {
+    // Clean up any old room state
+    setRoomCode('');
+    setPlayers([]);
+    setSelectedCards([]);
+    setGameState(null);
+    clearSession();
     socket.emit('join-room', { code, name });
   }, []);
 

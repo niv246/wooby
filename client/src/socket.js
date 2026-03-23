@@ -26,8 +26,9 @@ export function clearSession() {
   try { sessionStorage.removeItem('wooby'); } catch (e) { /* ignore */ }
 }
 
-// Auto-rejoin on reconnect
+// Auto-rejoin on reconnect (only for mid-session socket drops, NOT browser restarts)
 let hasConnectedOnce = false;
+let rejoinTimeout = null;
 
 socket.on('connect', () => {
   if (hasConnectedOnce) {
@@ -38,6 +39,25 @@ socket.on('connect', () => {
         code: session.code,
         name: session.name,
         playerId: session.id,
+      });
+
+      // Give it 3 seconds max — if no success, clear session and give up
+      if (rejoinTimeout) clearTimeout(rejoinTimeout);
+      rejoinTimeout = setTimeout(() => {
+        clearSession();
+        rejoinTimeout = null;
+      }, 3000);
+
+      // Clear timeout on success
+      socket.once('room-joined', () => {
+        if (rejoinTimeout) { clearTimeout(rejoinTimeout); rejoinTimeout = null; }
+      });
+      socket.once('game-state', () => {
+        if (rejoinTimeout) { clearTimeout(rejoinTimeout); rejoinTimeout = null; }
+      });
+      socket.once('error-msg', () => {
+        if (rejoinTimeout) { clearTimeout(rejoinTimeout); rejoinTimeout = null; }
+        clearSession();
       });
     }
   }
