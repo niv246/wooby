@@ -596,7 +596,7 @@ html, body {
 }
 
 .fan-card::after {
-  content: 'וובי';
+  content: 'שועה';
   font-family: var(--font-display);
   font-size: 6px;
   color: rgba(255,255,255,0.35);
@@ -952,7 +952,7 @@ html, body {
   border-color: #e08040;
 }
 
-/* ==================== CARD BACK — Blue starburst + וובי logo ==================== */
+/* ==================== CARD BACK — Blue starburst + שועה logo ==================== */
 .card-back {
   display: flex;
   align-items: center;

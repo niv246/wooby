@@ -19,7 +19,7 @@ export default function Card({ card, selected, onClick, small, faceDown, disable
       <div className={`card card-back ${small ? 'card-small' : ''}`} style={style}>
         <div className="card-back-inner">
           <div className="card-back-pattern"></div>
-          <span className="card-back-logo">וובי</span>
+          <span className="card-back-logo">שועה</span>
         </div>
       </div>
     );

@@ -30,8 +30,8 @@ function HomeScreen({ onCreateRoom, onJoinRoom }) {
     <div className="screen home-screen fade-in">
       {/* Logo top */}
       <div className="home-top">
-        <h1 className="logo">וובי</h1>
-        <p className="subtitle">משחק הקלפים הכי מבאס 🍑</p>
+        <h1 className="logo">שועה</h1>
+        <p className="subtitle">משחק הקלפים של ה"שועה" שלך! 🍑</p>
       </div>
 
       {/* Buttons at bottom */}
@@ -89,7 +89,7 @@ function LobbyScreen({ code, players, hostId, myId, onStart }) {
     <div className="screen lobby-screen fade-in">
       {/* Persistent top bar */}
       <div className="top-bar">
-        <span className="top-logo">וובי</span>
+        <span className="top-logo">שועה</span>
       </div>
 
       {/* Dark panel */}
