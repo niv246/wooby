@@ -692,7 +692,7 @@ html, body {
   content: '';
   position: absolute;
   inset: min(-8vw, -30px);
-  border: 3px solid rgba(46, 204, 113, 0.8);
+  border: min(1.5vw, 5px) solid rgba(46, 204, 113, 0.8);
   border-radius: 50%;
   box-shadow:
     0 0 min(4vw, 16px) rgba(46, 204, 113, 0.5),
